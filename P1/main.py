@@ -1,7 +1,7 @@
 from globalTypes import *
 from lexer import getToken
 
-f = open('../example.cminus', 'r')
+f = open('../example.c-', 'r')
 programa = f.read() + TokenType.ENDFILE.value
 
 # lee todo el archivo a compilar
