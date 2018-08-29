@@ -11,9 +11,9 @@ def getToken(log=True):
     return tok.type, tok.value #tok.type viene de la libreria, es diferente a TokenType
 
 if __name__ == '__main__':
-    f = open('../example2.cminus', 'r')
+    f = open('../example.cminus', 'r')
     
-    programa = f.read() #+ TokenType.ENDFILE.value #Optional
+    programa = f.read() + TokenType.ENDFILE.value #Optional
     token, tokenString = getToken(True)
     while (token != TokenType.ENDFILE):
         token, tokenString = getToken(True)

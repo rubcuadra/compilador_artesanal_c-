@@ -58,7 +58,7 @@ def t_INTEGER(t):
     r'\d+'
     if t.lexer.lexdata[t.lexpos+len(t.value)].isalpha(): # ID that starts with numbers
         errorLine = t.lexer.lexdata.split('\n')[t.lexer.lineno]
-        print(f"Linea {t.lexer.lineno}: Error en la formación de un entero:\n{errorLine}")
+        print(f"Linea {t.lexer.lineno}: Error en la formación de un entero:\n{errorLine}\n{' '*(errorLine.find(t.value))}^\n")
     else:
         t.value = int(t.value)    
         return t
