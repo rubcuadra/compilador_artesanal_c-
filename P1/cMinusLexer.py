@@ -54,11 +54,15 @@ t_STRING = r'\".*?\"'
 eof_symbol = "$"
 t_ENDOFFILE = r"\$"
 
+def printError(lexer, errorDescription, errorVal):
+    errorLine = (lexer.lexdata.split('\n')[lexer.lineno]).replace('\t',' ') #replace for better error printing
+    
+    print(f"ERROR: {errorDescription}\n{lexer.lineno}:{errorLine}\n{' '*(errorLine.find(errorVal)+len(str(lexer.lineno))+1)}^\n")
+
 def t_INTEGER(t):
     r'\d+'
     if t.lexer.lexdata[t.lexpos+len(t.value)].isalpha(): # ID that starts with numbers
-        errorLine = t.lexer.lexdata.split('\n')[t.lexer.lineno]
-        print(f"Linea {t.lexer.lineno}: Error en la formación de un entero:\n{errorLine}\n{' '*(errorLine.find(t.value))}^\n")
+        printError(t.lexer, f"Wrong integer format", t.value[0])
     else:
         t.value = int(t.value)    
         return t
@@ -73,8 +77,7 @@ def t_NEWLINE(t):
     pass
 
 def t_error(t):
-    errorLine = t.lexer.lexdata.split('\n')[t.lexer.lineno]
-    print(f"Linea {t.lexer.lineno}: Caracter desconocido {t.value[0]}\n {t.lexer.lineno}:{errorLine}")
+    printError(t.lexer, f"Unkown character {t.value[0]}", t.value[0])
     t.lexer.skip(1)
 
 lexer = lex.lex(debug=0)
