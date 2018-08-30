@@ -3,7 +3,12 @@
 from globalTypes import *
 from cMinusLexer import lexer
 
-def getToken(log=True):
+#Used to init programa global var
+def globales(prog, pos, long):
+    global programa
+    programa = prog
+
+def getToken(log=True): #We assume there is a global var called programa
     if lexer.lexdata is None: lexer.input(programa) # Give the lexer some input
     tok = lexer.token()
     if not tok or tok.value == TokenType.ENDFILE.value: return TokenType.ENDFILE, TokenType.ENDFILE.value #No hay mas, requisito del programa
@@ -12,8 +17,7 @@ def getToken(log=True):
 
 if __name__ == '__main__':
     f = open('../example.c-', 'r')
-    
-    programa = f.read() + TokenType.ENDFILE.value #Optional
+    prog = f.read() + TokenType.ENDFILE.value #Optional
     token, tokenString = getToken(True)
     while (token != TokenType.ENDFILE):
         token, tokenString = getToken(True)
