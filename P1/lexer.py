@@ -1,6 +1,5 @@
-#A01019102
-#Utilice la implementación de variable estado o la de tabla. Recuerde que la implementación con variable estado es más eficiente.
-from globalTypes import *
+#Ruben Cuadra A01019102
+from globalTypes import * #Mandatory to have a TokenType.ENDFILE (Homework)
 from cMinusLexer import lexer
 
 #Used to init programa global var
@@ -17,7 +16,7 @@ def getToken(log=True): #We assume there is a global var called programa
 
 if __name__ == '__main__':
     f = open('../example.c-', 'r')
-    prog = f.read() + TokenType.ENDFILE.value #Optional
+    programa = f.read() + TokenType.ENDFILE.value #Mandatory for the homework
     token, tokenString = getToken(True)
     while (token != TokenType.ENDFILE):
         token, tokenString = getToken(True)
