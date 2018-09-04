@@ -9,7 +9,7 @@ tokens = keywords + (
     'LPAREN', 'RPAREN', "LBRACK", "RBRACK", "LCBRACES", "RCBRACES",
     'LT', 'LE', 'GT', 'GE', 'EQ', 'NE',
     'COMMA', 'SEMI', 
-    'INTEGER', 'FLOAT', 'STRING',
+    'INTEGER', #'FLOAT', 'STRING',
     'ID', 
     'NEWLINE',
     "ENDOFFILE",
@@ -48,8 +48,9 @@ t_RCBRACES = r'}'
 t_COMMA = r'\,'
 t_SEMI = r';'
 
-t_FLOAT = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
-t_STRING = r'\".*?\"'
+#We do not have this in C-
+# t_FLOAT = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))' 
+# t_STRING = r'\".*?\"'
 
 eof_symbol = "$"
 t_ENDOFFILE = r"\$"
