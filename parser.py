@@ -120,6 +120,7 @@ def p_type_specifier():
     if match("int") :  return Node("int")
     if match("void"):  return Node("void")
 
+#AQUI esta el problema
 def p_compount_stmt(node_type="compound_statements"): #Returns a Node
     """
         compount_stmt : { local_declarations_list statement_list }
