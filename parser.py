@@ -5,6 +5,7 @@
 #                   | expression DIVIDE expression'''
 #     p[0] = Node("binop", [p[1],p[3]], p[2])
 from cMinusLexer import lexer, eof_symbol
+import traceback
 
 #Lexer
 token  = None #Current
@@ -13,9 +14,14 @@ def TokensGenerator(program):
     lexer.input(program)
     ret = lexer.token()
     while not ret in [None, eof_symbol]:
-        # print(f"{ret.type} => {ret.value}")
+        print(f"{ret.type} => {ret.value}")
         yield ret
         ret = lexer.token()
+
+class ParserError(Exception):
+    def __init__(self, message, token=None):
+        super(ParserError, self).__init__(message)
+        self.token = token
 
 class Node:
     def __init__(self,_type,children=None,value=None):
@@ -113,7 +119,6 @@ def p_param(node_type="param"): #Can return None
 def p_type_specifier():
     if match("int") :  return Node("int")
     if match("void"):  return Node("void")
-    p_error()
 
 def p_compount_stmt(node_type="compound_statements"): #Returns a Node
     """
@@ -138,7 +143,7 @@ def p_local_declarations_list(node_type = "local_declaration"): #Returns array
     while nxt:
         ldl.append(nxt)
         nxt = p_var_declaration()
-    return ld
+    return ldl
 
 def p_statement_list(): #Returns array
     """
@@ -150,7 +155,7 @@ def p_statement_list(): #Returns array
     while nxt:
         sl.append(nxt)
         nxt = p_statement()
-    return ld
+    return sl
 
 def p_statement(): #Can return None
     """
@@ -162,14 +167,26 @@ def p_statement(): #Can return None
     """
     possibles = [
         p_expression_stmt,
-        p_compount_stmt,
-        p_selection_stmt,
-        p_iteration_stmt,
+        # p_compount_stmt,
+        # p_selection_stmt,
+        # p_iteration_stmt,
         p_return_stmt
     ]
     for p in possibles:
         c = p()
         if c: return c
+def p_return_stmt(node_type="return_stmt"):
+    """
+       return_stmt : return SEMI
+                   | return expression SEMI 
+    """
+    if match("return"):
+        if match("SEMI"):
+            return Node(node_type,[Node("return"),Node("SEMI")])
+        else:
+            e = p_expression()
+            return Node(node_type,[Node("return"),e,Node("SEMI")])
+
 
 def p_expression_stmt(node_type="expression_stmt"): #Can return None
     """
@@ -327,7 +344,7 @@ def p_var_declaration(node_type = "declaration"): #Can return None
 
 def p_error():
     print("ERROR ",token)
-    raise Exception("error")
+    raise ParserError("ERROR",token=token)
 
 #Used to init programa global var
 def globales(prog, pos=None, long=None):
@@ -347,7 +364,14 @@ def parse(imprime=True):
     tokens = TokensGenerator(programa)
     token = next(tokens)
     #Ya debe existir tokens y token
-    result = p_program()
+    result = None
+    
+    try:                     
+        result = p_program()
+    except ParserError as e: 
+        print(e.token)
+        traceback.print_exc()
+
     if imprime: Node.printTree(result)
     return result
     
