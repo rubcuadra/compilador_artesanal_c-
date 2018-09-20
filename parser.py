@@ -35,7 +35,7 @@ class Node:
         for c in _node.children:
             Node.printTree(c, level= level+1)
 
-def p_program(node_type="program"):
+def p_program(node_type="program"): #Returns root Node
     """program : declaration-list"""     
     return Node(node_type, children = p_declaration_list() )
 
@@ -48,7 +48,7 @@ def p_declaration_list(): #Returns a list
     if (token is None) or (token.type == "ENDOFFILE") : return []
     return [p_declaration()] + p_declaration_list()
 
-def p_declaration(node_type="declaration"):
+def p_declaration(node_type="declaration"): #Returns a Node
     """ declaration : type_specifier ID ; 
                     | type_specifier ID [ INTEGER ] ;
                     | type_specifier ID ( params ) compound-stmt"""
@@ -96,7 +96,7 @@ def p_param_list(): #Returns a list of Nodes
         return p
     #Aqui no es error
     
-def p_param(node_type="param"):
+def p_param(node_type="param"): #Can return None
     """
         param       : type_specifier ID    
                     | type_specifier ID [ ]  
@@ -109,23 +109,22 @@ def p_param(node_type="param"):
             return Node(node_type, [ts,decName,Node("LBRACK"),Node("RBRACK")])
         else:
             return Node(node_type, [ts,decName]) 
-    #Aqui no es error
 
 def p_type_specifier():
     if match("int") :  return Node("int")
     if match("void"):  return Node("void")
     p_error()
 
-def p_compount_stmt(node_type="compound_statements"):
+def p_compount_stmt(node_type="compound_statements"): #Returns a Node
     """
         compount_stmt : { local_declarations_list statement_list }
     """
     if match("LCBRACES"):
-        ld = p_local_declarations_list()
+        ldl = p_local_declarations_list()
         sl = p_statement_list()
         
         if match("RCBRACES"):
-            return Node(node_type,[Node("LCBRACES"),*ld,*sl,Node("RCBRACES")])
+            return Node(node_type,[Node("LCBRACES"),*ldl,*sl,Node("RCBRACES")])
 
     p_error()
 
@@ -135,9 +134,9 @@ def p_local_declarations_list(node_type = "local_declaration"): #Returns array
                                 | empty
     '''
     nxt = p_var_declaration()
-    ld = []
+    ldl = []
     while nxt:
-        ld.append(nxt)
+        ldl.append(nxt)
         nxt = p_var_declaration()
     return ld
 
@@ -172,8 +171,125 @@ def p_statement(): #Can return None
         c = p()
         if c: return c
 
- 
-def p_var_declaration(node_type = "declaration"):
+def p_expression_stmt(node_type="expression_stmt"): #Can return None
+    """
+       expression_stmt : expression SEMI 
+                       | SEMI 
+    """
+    if match("SEMI"):
+        return Node(node_type,[Node("SEMI")]) 
+    else:
+        e = p_expression()
+        if e:
+            if match("SEMI"): 
+                return Node(node_type,[e,Node("SEMI")])  
+            p_error()
+
+def p_expression(node_type="expression"): 
+    """
+        expression : var EQUALS expression 
+                   | simple_expression
+    """
+    se = p_simple_expression()
+    if se: return se
+
+    v = p_var() 
+    if v and match("EQUALS"):
+        e = p_expression()
+        if not e: p_error() #Checar que onda aqui
+        return Node(node_type,[v,Node("EQUALS"),e],"ASSIGN")
+    
+
+def p_simple_expression(node_type="expression_simple"):
+    """
+        additive_expression : additive_expression addop term
+                            | term
+
+        additive_expression : term { addop term }
+    """
+    t = p_term() #Node or None
+    if t:
+        #term { addop term }
+        #Checar si es addop en un while
+
+    return t
+
+
+
+def p_term():
+    """
+        term : term mulop factor 
+             | factor
+
+        term : factor { mulop factor }
+    """
+    f = p_factor()
+    if f:
+        #factor { mulop factor }
+        #Checar si es mulop en un while
+    return f
+
+def p_factor(node_type="factor"):
+    """
+        factor : ( expression )
+               | NUM
+               | ID
+               | ID [ expression ]
+               | ID ( args )
+    """
+    if match("LPAREN"):          #( expression )
+        e = p_expression()
+        if e and match("RPAREN"):
+            return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
+        p_error() #Necesario??
+    else:
+        cT = token
+        if match("INTEGER"):     #NUM
+            return Node(cT.type, value=cT.value) 
+        if match("ID"):          #ID
+            decName = Node(cT.type, value=cT.value) 
+            if match("LBRACK"):  #ID [ expression ]
+                e = p_expression()
+                if match( "RBRACK" ): 
+                    return Node(node_type,[decName,Node("LBRACK"),e,Node("RBRACK")])
+            elif match("LPAREN"):#ID ( args )
+                args = p_args()
+                if match("RPAREN"):
+                    return Node(node_type,[decName,Node("LPAREN"),*args,Node("RPAREN")])
+                else:
+                    p_error()
+
+def p_args(): #Returns a list
+    """
+        args : expression { , expression }
+             | empty
+    """
+    r = []
+    e = p_expression()
+    while e:
+        r.append(e)
+        if match("COMMA"): 
+            e = p_expression()
+            if not e: p_error()
+        else: break
+    return r
+
+def p_var(node_type = "var"): #Can return None
+    """
+        var : ID 
+            | ID [ expression ]
+    """
+    cT = token
+    if match("ID"):
+        decName = Node(cT.type, value=cT.value)
+        if match("LBRACK"):
+            e = p_expression()
+            if e and match("RBRACK"): return Node(node_type,[decName,Node("LBRACK"),e,Node("RBRACK")],"ARRAY")
+            else:                     p_error()
+        else:
+            return Node(node_type,[decName],"VAR")
+
+def p_var_declaration(node_type = "declaration"): #Can return None
     """ declaration : type_specifier ID ; 
                     | type_specifier ID [ INTEGER ] ;
 
@@ -192,7 +308,7 @@ def p_var_declaration(node_type = "declaration"):
                 return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ], "ARRAY")
         else:
             p_error()
-    #Can return None
+    
 
 def p_error():
     print("ERROR ",token)
