@@ -1,6 +1,6 @@
 #Ruben Cuadra A01019102
-from globalTypes import * #Mandatory to have a TokenType.ENDFILE (Homework)
-from cMinusLexer import lexer
+from .globalTypes import * #Mandatory to have a TokenType.ENDFILE (Homework)
+from .cMinusLexer import lexer
 
 #Used to init programa global var
 def globales(prog, pos, long):
