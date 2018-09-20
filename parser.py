@@ -57,18 +57,18 @@ def p_declaration(node_type="declaration"):
     if match("ID"):
         decName = Node(cT.type, value=cT.value)
         if match("SEMI"):     # ;
-            return Node(node_type, [ts,decName,Node("SEMI")])
+            return Node(node_type, [ts,decName,Node("SEMI")], "VARIABLE")
         elif match("LBRACK"):   # [
             cT = token
             iVal = Node(cT.type, value=cT.value) #INTEGER value
             if match("INTEGER") and match("RBRACK") and match("SEMI"):
-                return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ])
+                return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ], "ARRAY")
         elif match("LPAREN"):   # (
             params = p_params()
             if params and match("RPAREN"):
                 cps = p_compount_stmt()
                 if cps: #!=None
-                    return Node(node_type, [ts,decName,Node("LPAREN"),*params,Node("RPAREN"),cps ])
+                    return Node(node_type, [ts,decName,Node("LPAREN"),*params,Node("RPAREN"),cps ], "FUNCTION")
     p_error()
 
 def p_params(): #Returns a list of Nodes
