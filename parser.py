@@ -118,26 +118,81 @@ def p_type_specifier():
 
 def p_compount_stmt(node_type="compound_statements"):
     """
-        compount_stmt : { local_declarations statement_list }
+        compount_stmt : { local_declarations_list statement_list }
     """
     if match("LCBRACES"):
-        #TODO finish this
+        ld = p_local_declarations_list()
+        sl = p_statement_list()
         
-        # ld = p_local_declarations
-        # sl = p_statement_list
-        global token
-        c = 0
-        cT = token
-        while c>=0 and token!=None:
-            cT = token
-            if    match("LCBRACES"): c+=1
-            elif  match("RCBRACES"): c-=1
-            else: token = next(tokens) 
-        
-        if cT.type == "RCBRACES" or match("RCBRACES"):
-            return Node(node_type,[Node("LCBRACES"),Node("RCBRACES")])
+        if match("RCBRACES"):
+            return Node(node_type,[Node("LCBRACES"),*ld,*sl,Node("RCBRACES")])
 
-    return 
+    p_error()
+
+def p_local_declarations_list(node_type = "local_declaration"): #Returns array
+    '''
+        local_declarations_list : var_declarations local_declarations_list 
+                                | empty
+    '''
+    nxt = p_var_declaration()
+    ld = []
+    while nxt:
+        ld.append(nxt)
+        nxt = p_var_declaration()
+    return ld
+
+def p_statement_list(): #Returns array
+    """
+       statement_list :  statement statement_list
+                      |  empty
+    """
+    nxt = p_statement()
+    sl = []
+    while nxt:
+        sl.append(nxt)
+        nxt = p_statement()
+    return ld
+
+def p_statement(): #Can return None
+    """
+        statement : expression_stmt
+                  | compund_stmt
+                  | selection_stmt
+                  | iteration_stmt
+                  | return_stmt
+    """
+    possibles = [
+        p_expression_stmt,
+        p_compount_stmt,
+        p_selection_stmt,
+        p_iteration_stmt,
+        p_return_stmt
+    ]
+    for p in possibles:
+        c = p()
+        if c: return c
+
+ 
+def p_var_declaration(node_type = "declaration"):
+    """ declaration : type_specifier ID ; 
+                    | type_specifier ID [ INTEGER ] ;
+
+        Similar to p_declaration but without functions and can return None
+    """
+    ts = p_type_specifier() #Type of var
+    cT = token              #ID value
+    if match("ID"):
+        decName = Node(cT.type, value=cT.value)
+        if match("SEMI"):     # ;
+            return Node(node_type, [ts,decName,Node("SEMI")], "VARIABLE")
+        elif match("LBRACK"):   # [
+            cT = token
+            iVal = Node(cT.type, value=cT.value) #INTEGER value
+            if match("INTEGER") and match("RBRACK") and match("SEMI"):
+                return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ], "ARRAY")
+        else:
+            p_error()
+    #Can return None
 
 def p_error():
     print("ERROR ",token)
