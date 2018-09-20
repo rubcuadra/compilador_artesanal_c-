@@ -5,7 +5,7 @@
 #                   | expression DIVIDE expression'''
 #     p[0] = Node("binop", [p[1],p[3]], p[2])
 from cMinusLexer import lexer, eof_symbol
-import traceback
+import traceback, sys
 
 #Lexer
 token  = None #Current
@@ -127,10 +127,8 @@ def p_compount_stmt(node_type="compound_statements"): #Returns a Node
     if match("LCBRACES"):
         ldl = p_local_declarations_list()
         sl = p_statement_list()
-        
         if match("RCBRACES"):
             return Node(node_type,[Node("LCBRACES"),*ldl,*sl,Node("RCBRACES")])
-
     p_error()
 
 def p_local_declarations_list(node_type = "local_declaration"): #Returns array
@@ -211,11 +209,11 @@ def p_expression(node_type="expression"):
     if se: return se
 
     v = p_var() 
-    if v and match("EQUALS"):
-        e = p_expression()
-        if not e: p_error() #Checar que onda aqui
-        return Node(node_type,[v,Node("EQUALS"),e],"ASSIGN")
-    
+    if v:
+        if match("EQUALS"):
+            e = p_expression()
+            if not e: p_error() #Checar que onda aqui
+            return Node(node_type,[v,Node("EQUALS"),e],"ASSIGN")
 
 def p_simple_expression(node_type="expression_simple"):
     """
@@ -366,11 +364,9 @@ def parse(imprime=True):
     #Ya debe existir tokens y token
     result = None
     
-    try:                     
-        result = p_program()
-    except ParserError as e: 
-        print(e.token)
-        traceback.print_exc()
+    
+    result = p_program()
+    
 
     if imprime: Node.printTree(result)
     return result
