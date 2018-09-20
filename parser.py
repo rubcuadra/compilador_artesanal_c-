@@ -13,7 +13,7 @@ def TokensGenerator(program):
     lexer.input(program)
     ret = lexer.token()
     while not ret in [None, eof_symbol]:
-        # print(ret)
+        # print(f"{ret.type} => {ret.value}")
         yield ret
         ret = lexer.token()
 
@@ -144,7 +144,7 @@ def p_error():
     raise Exception("error")
 
 #Used to init programa global var
-def globales(prog, pos, long):
+def globales(prog, pos=None, long=None):
     global programa
     programa = prog
 
@@ -160,18 +160,17 @@ def parse(imprime=True):
     global tokens,token
     tokens = TokensGenerator(programa)
     token = next(tokens)
-    #Ya debe estar inicializado token y tokens
-    return p_program()
+    #Ya debe existir tokens y token
+    result = p_program()
+    if imprime: Node.printTree(result)
+    return result
     
 if __name__ == '__main__':
     #Segundo Parcial
     f = open('example.c-', 'r')
     programa = f.read()
-    progLong = len(programa)
-    programa = programa + '$'
-    posicion = 0
-    
-    globales(programa, posicion, progLong)
+    programa = programa + '$' #Cuando quede hecho todo ver como remover el $
+    globales(programa)
     AST = parse(True)
-    Node.printTree(AST)
+    
 
