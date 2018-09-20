@@ -208,13 +208,15 @@ def p_simple_expression(node_type="expression_simple"):
         additive_expression : term { addop term }
     """
     t = p_term() #Node or None
-    if t:
-        #term { addop term }
-        #Checar si es addop en un while
-
+    if t:        #term { addop term }
+        toRet = [t]
+        addop = p_addop()
+        while addop:
+            tmpT = p_term()
+            toRet += [addop,tmpT]
+            addop = p_addop()
+        return Node(node_type,toRet)
     return t
-
-
 
 def p_term():
     """
@@ -225,9 +227,22 @@ def p_term():
     """
     f = p_factor()
     if f:
-        #factor { mulop factor }
-        #Checar si es mulop en un while
+        toRet = [f]
+        mulop = p_mulop()
+        while mulop:
+            tmpF = p_factor()
+            toRet += [mulop,tmpF]
+            mulop = p_mulop()
+        return Node(node_type,toRet)
     return f
+
+def p_mulop(node_type="mulop"):
+    if match("TIMES"):    return Node(node_type,[],"TIMES")
+    elif match("DIVIDE"): return Node(node_type,[],"DIVIDE")
+
+def p_addop(node_type="addop"):
+    if match("PLUS"):   return Node(node_type,[],"PLUS")
+    elif match("MINUS"): return Node(node_type,[],"MINUS")
 
 def p_factor(node_type="factor"):
     """
@@ -338,7 +353,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example.c-', 'r')
+    f = open('example3.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
