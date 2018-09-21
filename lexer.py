@@ -1,25 +1,34 @@
 #Ruben Cuadra A01019102
-from globalTypes import TokenType #Mandatory to have a TokenType.ENDFILE (Homework)
-from cMinusLexer import lexer
+from globalTypes import TokenType
+from cMinusLexer import lexer, eof_symbol
 
 class CMIN_Lexer():
     def __init__(self, program):
         super(CMIN_Lexer, self).__init__()
-        lexer.input(programa)
+        self.program = program
+        lexer.input(program)
 
     def getToken(self, log=True):
         tok = lexer.token()
-        if not tok or tok.value == TokenType.ENDFILE.value: return TokenType.ENDFILE, TokenType.ENDFILE.value #No hay mas, requisito del programa
-        if log: print(f"{tok.type} => {tok.value}")
+        if tok in [None, eof_symbol]: return TokenType.ENDFILE, TokenType.ENDFILE.value #No hay mas, requisito del programa
+        if log:                       print(f"{tok.type} => {tok.value}")
         return tok.type, tok.value #tok.type viene de la libreria, es diferente a TokenType
 
+    def tokenGenerator(self):
+        lexer.input(self.program)
+        ret = lexer.token()
+        while not ret in [None, eof_symbol]:
+            yield ret
+            ret = lexer.token()
 
 if __name__ == '__main__':
     f = open('examples/3.c-', 'r')
-    programa = f.read() + TokenType.ENDFILE.value #Mandatory for the homework
-    l = CMIN_Lexer(programa)
-
+    p = f.read() + TokenType.ENDFILE.value #Mandatory for the homework
+    #Example 1
+    l = CMIN_Lexer(p)
     token, tokenString = l.getToken(True)
     while (token != TokenType.ENDFILE):
         token, tokenString = l.getToken(True)
+    #Example 2
+    for token in l.tokenGenerator(): print(token)
     

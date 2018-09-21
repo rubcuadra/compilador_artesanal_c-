@@ -1,22 +1,11 @@
-# def p_expression_binop(p):
-#     '''expression : expression PLUS expression
-#                   | expression MINUS expression
-#                   | expression TIMES expression
-#                   | expression DIVIDE expression'''
-#     p[0] = Node("binop", [p[1],p[3]], p[2])
 from cMinusLexer import lexer, eof_symbol
+
 import traceback, sys
 
 #Lexer
 token  = None #Current
 tokens = None #All
-def TokensGenerator(program):
-    lexer.input(program)
-    ret = lexer.token()
-    while not ret in [None, eof_symbol]:
-        # print(f"{ret.type} => {ret.value}")
-        yield ret
-        ret = lexer.token()
+
 
 class ParserError(Exception):
     def __init__(self, message, token=None):
