@@ -239,10 +239,10 @@ def p_expression(node_type="expression",deb=False):
     """
         expression : ID EQUALS expression 
                    | ID [ expression ] EQUALS expression
-                   | ID [ expression ] multis sumres relop term sumres 
-                   | ID [ expression ] sumres
-                   | factor multis sumres relop term sumres
-                   | factor multis sumres
+                   | ID [ expression ] {operations}  
+                   | ID [ expression ] {operations} conditional {operations}
+                   | factor {operations} 
+                   | factor {operations} conditional {operations}
     """
     cT = token
     idNode = None
@@ -272,7 +272,7 @@ def p_expression(node_type="expression",deb=False):
 
 def p_conditionals(factor):
     """
-        operations : relop factor 
+        conditional : relop factor 
     """
     relop = p_relop() #Checar si tiene relops
     if relop:
@@ -427,7 +427,7 @@ def match(ttype):
 
 def parser(imprime=True):
     if not programa: raise Exception("You should call 'globales' first")
-    global tokens,token
+    global tokens,token 
     lexer  = CMIN_Lexer(programa)
     tokens = lexer.tokensGenerator()
     token  = next(tokens)
@@ -444,4 +444,3 @@ if __name__ == '__main__':
     globales(programa)
     AST = parser(True)
     
-
