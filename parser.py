@@ -346,7 +346,6 @@ def p_expression(node_type="expression"):
         else: #L is factor
             if relop:
                 term2 = p_factor()
-                print(term2)
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [factor,sumres2]
                 else:       relop.children = [factor,term2]
