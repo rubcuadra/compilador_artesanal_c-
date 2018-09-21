@@ -212,6 +212,7 @@ def p_expression(node_type="expression"):
                    | factor multis sumres
     """
     cT = token
+    idNode = None
     if match("ID"): 
         idNode = Node(cT.type,value = cT.value)
         if match("EQUALS"):  #caso 1, asignar a una var
@@ -251,48 +252,47 @@ def p_expression(node_type="expression"):
             args = p_args()
             if match("RPAREN"):
                 return Node("CALL",[idNode]+args)
-        return idNode
-    else: #Terms 
-        factor = p_factor()
-        multis = p_multis(factor)
-        if multis: #L es multis
-            sumres = p_sumres(multis)
-            relop = p_relop()
-            if sumres: #L es sumres
-                if relop:
-                    term2 = p_term()
-                    sumres2 = p_sumres(term2)
-                    if sumres2: relop.children = [sumres,sumres2]
-                    else:       relop.children = [sumres,term]
-                else: 
-                    return sumres
-            else:  #L es multis
-                if relop:
-                    term2 = p_term()
-                    sumres2 = p_sumres(term2)
-                    if sumres2: relop.children = [multis,sumres2]
-                    else:       relop.children = [multis,term]
-                else: 
-                    return multis
-        else:      #L es factor
-            sumres = p_sumres(factor)
-            relop = p_relop()
-            if sumres: #L is sumres
-                if relop:
-                    term2 = p_term()
-                    sumres2 = p_sumres(term2)
-                    if sumres2: relop.children = [sumres,sumres2]
-                    else:       relop.children = [sumres,term]
-                else: 
-                    return sumres
-            else: #L is factor
-                if relop:
-                    term2 = p_term()
-                    sumres2 = p_sumres(term2)
-                    if sumres2: relop.children = [factor,sumres2]
-                    else:       relop.children = [factor,term]
-                else: 
-                    return factor
+                
+    factor = idNode if idNode else p_factor()
+    multis = p_multis(factor)
+    if multis: #L es multis
+        sumres = p_sumres(multis)
+        relop = p_relop()
+        if sumres: #L es sumres
+            if relop:
+                term2 = p_term()
+                sumres2 = p_sumres(term2)
+                if sumres2: relop.children = [sumres,sumres2]
+                else:       relop.children = [sumres,term]
+            else: 
+                return sumres
+        else:  #L es multis
+            if relop:
+                term2 = p_term()
+                sumres2 = p_sumres(term2)
+                if sumres2: relop.children = [multis,sumres2]
+                else:       relop.children = [multis,term]
+            else: 
+                return multis
+    else:      #L es factor
+        sumres = p_sumres(factor)
+        relop = p_relop()
+        if sumres: #L is sumres
+            if relop:
+                term2 = p_term()
+                sumres2 = p_sumres(term2)
+                if sumres2: relop.children = [sumres,sumres2]
+                else:       relop.children = [sumres,term]
+            else: 
+                return sumres
+        else: #L is factor
+            if relop:
+                term2 = p_term()
+                sumres2 = p_sumres(term2)
+                if sumres2: relop.children = [factor,sumres2]
+                else:       relop.children = [factor,term]
+            else: 
+                return factor
     
 def p_sumres(L): #Puede regresar None
     """
@@ -377,6 +377,7 @@ def p_args(): #Returns a list
     while e:
         r.append(e)
         if match("COMMA"): 
+            print("args",token)
             e = p_expression()
             if not e: p_error()
         else: break
