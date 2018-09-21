@@ -195,6 +195,7 @@ def p_selection_stmt():
     if match("if"):
         if match("LPAREN"):
             e = p_expression() #Can't be None
+            print(e)
             if e and match("RPAREN"):
                 s = p_statement()
                 if match("else"): #Segunda parte
@@ -266,14 +267,16 @@ def p_expression(node_type="expression"):
                                 sumres2 = p_sumres(term)
                                 if sumres2: relop.children = [sumres,sumres2]
                                 else:       relop.children = [sumres,term]
+                                return relop
                             return sumres #SEGURO??
                         else:
                             relop = p_relop()
                             if relop:
-                                term = p_term()
+                                term = p_factor()
                                 sumres2 = p_sumres(term)
                                 if sumres2: relop.children = [multis,sumres2]
                                 else:       relop.children = [multis,term]
+                                return relop
                             return multis #SEGURO??
                     else:     
                         sumres = p_sumres(L)
@@ -295,7 +298,8 @@ def p_expression(node_type="expression"):
                 term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [sumres,sumres2]
-                else:       relop.children = [sumres,term]
+                else:       relop.children = [sumres,term2]
+                return relop
             else: 
                 return sumres
         else:  #L es multis
@@ -303,7 +307,8 @@ def p_expression(node_type="expression"):
                 term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [multis,sumres2]
-                else:       relop.children = [multis,term]
+                else:       relop.children = [multis,term2]
+                return relop
             else: 
                 return multis
     else:      #L es factor
@@ -314,7 +319,8 @@ def p_expression(node_type="expression"):
                 term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [sumres,sumres2]
-                else:       relop.children = [sumres,term]
+                else:       relop.children = [sumres,term2]
+                return relop
             else: 
                 return sumres
         else: #L is factor
@@ -322,7 +328,8 @@ def p_expression(node_type="expression"):
                 term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [factor,sumres2]
-                else:       relop.children = [factor,term]
+                else:       relop.children = [factor,term2]
+                return relop
             else: 
                 return factor
     
@@ -464,7 +471,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example3.c-', 'r')
+    f = open('example.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
