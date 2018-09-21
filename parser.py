@@ -262,20 +262,21 @@ def p_expression(node_type="expression",deb=False):
                 else: 
                     factor = L
                     factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
-                    relop = p_relop() #Checar si tiene relops
-                    if relop:
-                        R = p_factor()      #Obtener el factor de la derecha
-                        R = p_operations(R) #Sacar operaciones
-                        relop.children = [factor,R]
-                        return relop
+                    factor = p_conditionals(factor)
                     return factor
         if match("LPAREN"): #CALL function
             args = p_args()
             if match("RPAREN"):
                 return Node("CALL",[idNode]+args)
-    
     factor = idNode if idNode else p_factor()
     factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
+    factor = p_conditionals(factor)
+    return factor
+
+def p_conditionals(factor):
+    """
+        operations : relop factor 
+    """
     relop = p_relop() #Checar si tiene relops
     if relop:
         R = p_factor()      #Obtener el factor de la derecha
@@ -285,6 +286,11 @@ def p_expression(node_type="expression",deb=False):
     return factor
 
 def p_operations(factor): #Create tree of operations and return it
+    """
+        operations : multis 
+                   | multis sumres
+                   | sumres
+    """
     multis = p_multis(factor)
     sumres = p_sumres(multis) if multis else p_sumres(factor)
     sumres = sumres if sumres else multis #Caso si multis pero no sumres
@@ -434,7 +440,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example3.c-', 'r')
+    f = open('example2.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
