@@ -309,7 +309,7 @@ def p_expression(node_type="expression"):
     factor = idNode if idNode else p_factor()
     multis = p_multis(factor)
     #AQUI HAY BUGGS
-    print("VAMO")
+
     if multis: #L es multis
         sumres = p_sumres(multis)
         relop = p_relop()
@@ -345,7 +345,6 @@ def p_expression(node_type="expression"):
                 return sumres
         else: #L is factor
             if relop:
-                print(token)
                 term2 = p_factor()
                 print(term2)
                 sumres2 = p_sumres(term2)
@@ -479,7 +478,7 @@ def globales(prog, pos=None, long=None):
 def match(ttype):
     global token
     if ttype == token.type:
-        print(token)
+        # print(token)
         token = next(tokens) #Move to next token
         return True
     return False
