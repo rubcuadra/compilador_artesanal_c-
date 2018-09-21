@@ -64,7 +64,7 @@ def p_declaration(node_type="declaration"): #Returns a Node
     if match("ID"):
         decName = Node(cT.type, value=cT.value)
         if match("SEMI"):     # ;
-            return Node(node_type, [ts,decName], "VARIABLE")
+            return Node(node_type, [ts,decName], "VAR")
         elif match("LBRACK"):   # [
             cT = token
             iVal = Node(cT.type, value=cT.value) #INTEGER value
@@ -113,9 +113,9 @@ def p_param(node_type="param"): #Can return None
     if match("ID"):
         decName = Node(cT.type, value=cT.value)
         if match("LBRACK") and match("RBRACK"):
-            return Node(node_type, [ts,decName,Node("LBRACK"),Node("RBRACK")])
+            return Node(node_type, [ts,decName,Node("LBRACK"),Node("RBRACK")], "ARRAY")
         else:
-            return Node(node_type, [ts,decName]) 
+            return Node(node_type, [ts,decName], "VAR") 
 
 def p_type_specifier():
     if match("int") :  return Node("int")
@@ -401,7 +401,7 @@ def p_var_declaration(node_type = "declaration"): #Can return None
         if match("ID"):
             decName = Node(cT.type, value=cT.value)
             if match("SEMI"):     # ;
-                return Node(node_type, [ts,decName], "VARIABLE")
+                return Node(node_type, [ts,decName], "VAR")
             elif match("LBRACK"):   # [
                 cT = token
                 iVal = Node(cT.type, value=cT.value) #INTEGER value
@@ -440,7 +440,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example2.c-', 'r')
+    f = open('examples/3.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
