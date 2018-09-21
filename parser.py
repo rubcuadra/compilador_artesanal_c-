@@ -260,49 +260,16 @@ def p_expression(node_type="expression"):
                 if match("EQUALS"):
                     return Node("EQUALS",[L,p_expression()])
                 else: 
-                    #Nodo de multiplicaciones
-                    multis = p_multis(L) 
-                    if multis:  #sumres relop term sumres 
-                        sumres = p_sumres(multis)
-                        if sumres:
-                            relop = p_relop()
-                            if relop:
-                                term = p_factor()
-                                sumres2 = p_sumres(term)
-                                if sumres2: relop.children = [sumres,sumres2]
-                                else:       relop.children = [sumres,term]
-                                return relop
-                            return sumres #SEGURO??
-                        else:
-                            relop = p_relop()
-                            if relop:
-                                term = p_factor()
-                                sumres2 = p_sumres(term)
-                                if sumres2: relop.children = [multis,sumres2]
-                                else:       relop.children = [multis,term]
-                                return relop
-                            return multis #SEGURO??
-                    else:   
-                        sumres = p_sumres(L)
-                        if sumres: 
-                            relop = p_relop()
-                            if relop:
-                                term = p_factor()
-                                sumres2 = p_sumres(term)
-                                if sumres2: relop.children = [sumres,sumres2]
-                                else:       relop.children = [sumres,term]
-                                return relop
-                            return sumres #SEGURO??
-                        else:      
-                            relop = p_relop()
-                            if relop:
-                                term = p_factor()
-                                sumres2 = p_sumres(term)
-                                if sumres2: relop.children = [multis,sumres2]
-                                else:       relop.children = [multis,term]
-                                return relop
-                            return L
-        if match("LPAREN"):
+                    factor = L
+                    factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
+                    relop = p_relop() #Checar si tiene relops
+                    if relop:
+                        R = p_factor()      #Obtener el factor de la derecha
+                        R = p_operations(R) #Sacar operaciones
+                        relop.children = [factor,R]
+                        return relop
+                    return factor
+        if match("LPAREN"): #CALL function
             args = p_args()
             if match("RPAREN"):
                 return Node("CALL",[idNode]+args)
@@ -362,8 +329,10 @@ def p_factor(node_type="factor"):
     if match("LPAREN"):          #( expression )
         e = p_expression()
         if match("RPAREN"):
-            if e: return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
-            return Node(node_type,[Node("LPAREN"),Node("RPAREN")])
+            if e: 
+                return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
+            p_error()
+            
         p_error()    
     else:
         cT = token
@@ -375,10 +344,11 @@ def p_factor(node_type="factor"):
                 e = p_expression()
                 if match( "RBRACK" ): 
                     return Node(node_type,[decName,Node("LBRACK"),e,Node("RBRACK")])
-            elif match("LPAREN"):#ID ( args )
+            
+            elif match("LPAREN"): #CALL function
                 args = p_args()
                 if match("RPAREN"):
-                    return Node(node_type,[decName,Node("LPAREN"),*args,Node("RPAREN")])
+                    return Node("CALL",[decName]+args)
                 p_error()
             return decName
 
@@ -465,7 +435,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example.c-', 'r')
+    f = open('example3.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
