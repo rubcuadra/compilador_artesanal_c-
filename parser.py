@@ -1,11 +1,8 @@
-from cMinusLexer import lexer, eof_symbol
+from lexer import CMIN_Lexer
 
-import traceback, sys
-
-#Lexer
+#Requisito
 token  = None #Current
-tokens = None #All
-
+tokens = None #Generator
 
 class ParserError(Exception):
     def __init__(self, message, token=None):
@@ -420,8 +417,9 @@ def match(ttype):
 def parse(imprime=True):
     if not programa: raise Exception("You should call 'globales' first")
     global tokens,token
-    tokens = TokensGenerator(programa)
-    token = next(tokens)
+    lexer  = CMIN_Lexer(programa)
+    tokens = lexer.tokensGenerator()
+    token  = next(tokens)
     #Ya debe existir tokens y token
     result = p_program()
     if imprime:  Node.printTree(result)

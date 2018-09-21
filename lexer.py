@@ -14,7 +14,7 @@ class CMIN_Lexer():
         if log:                       print(f"{tok.type} => {tok.value}")
         return tok.type, tok.value #tok.type viene de la libreria, es diferente a TokenType
 
-    def tokenGenerator(self):
+    def tokensGenerator(self):
         lexer.input(self.program)
         ret = lexer.token()
         while not ret in [None, eof_symbol]:
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     while (token != TokenType.ENDFILE):
         token, tokenString = l.getToken(True)
     #Example 2
-    for token in l.tokenGenerator(): print(token)
+    for token in l.tokensGenerator(): print(token)
     
