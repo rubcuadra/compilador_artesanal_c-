@@ -263,7 +263,7 @@ def p_expression(node_type="expression"):
                         if sumres:
                             relop = p_relop()
                             if relop:
-                                term = p_term()
+                                term = p_factor()
                                 sumres2 = p_sumres(term)
                                 if sumres2: relop.children = [sumres,sumres2]
                                 else:       relop.children = [sumres,term]
@@ -278,10 +278,26 @@ def p_expression(node_type="expression"):
                                 else:       relop.children = [multis,term]
                                 return relop
                             return multis #SEGURO??
-                    else:     
+                    else:   
                         sumres = p_sumres(L)
-                        if sumres: return sumres
-                        else:      return L
+                        if sumres: 
+                            relop = p_relop()
+                            if relop:
+                                term = p_factor()
+                                sumres2 = p_sumres(term)
+                                if sumres2: relop.children = [sumres,sumres2]
+                                else:       relop.children = [sumres,term]
+                                return relop
+                            return sumres #SEGURO??
+                        else:      
+                            relop = p_relop()
+                            if relop:
+                                term = p_factor()
+                                sumres2 = p_sumres(term)
+                                if sumres2: relop.children = [multis,sumres2]
+                                else:       relop.children = [multis,term]
+                                return relop
+                            return L
         if match("LPAREN"):
             args = p_args()
             if match("RPAREN"):
@@ -455,6 +471,7 @@ def globales(prog, pos=None, long=None):
 def match(ttype):
     global token
     if ttype == token.type:
+        print(token)
         token = next(tokens) #Move to next token
         return True
     return False
@@ -471,7 +488,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example.c-', 'r')
+    f = open('example2.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
