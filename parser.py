@@ -41,6 +41,7 @@ class Node:
         for c in _node.children:
             Node.printTree(c, level= level+1)
 
+
 def p_program(node_type="program"): #Returns root Node
     """program : declaration-list"""     
     return Node(node_type, children = p_declaration_list() )
@@ -307,10 +308,10 @@ def p_expression(node_type="expression"):
                 return Node("CALL",[idNode]+args)
 
     factor = idNode if idNode else p_factor()
-    
     #Sacar multiplicaciones,divisiones,sumas,restas
     multis = p_multis(factor)
     sumres = p_sumres(multis) if multis else p_sumres(factor)
+    
     toRet  = sumres if sumres else factor #Ajustar si hubo sumas 
     #Checar si tiene relops
     relop = p_relop()
@@ -372,9 +373,10 @@ def p_sumres(L): #Puede regresar None
     """
         sumres : { addop factor multis }
     """
+    
+    if L is None: L = Node("INTEGER",value=0) #For unitary +/-
     res = None
     addop = p_addop()
-    if L is None: L = Node("INTEGER",value=0) #For unitary +/-
     while addop:
         addop.children = [L, p_factor()]
         mts = p_multis(addop)
@@ -388,11 +390,12 @@ def p_multis(L): #Puede regresar None
     """
         multis : { mulop factor }
     """
-    mulop = p_mulop()    
+    mulop = p_mulop()  
     while mulop:
         mulop.children = [L, p_factor()] #p_factor no puede ser None
         L = mulop
         mulop = p_mulop()
+        if mulop is None: return L
     return mulop
 
 def p_factor(node_type="factor"):
@@ -504,12 +507,12 @@ def parse(imprime=True):
     token = next(tokens)
     #Ya debe existir tokens y token
     result = p_program()
-    if imprime: Node.printTree(result)
+    if imprime:  Node.printTree(result)
     return result
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example2.c-', 'r')
+    f = open('example.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
