@@ -166,13 +166,26 @@ def p_statement(): #Can return None
     possibles = [
         p_expression_stmt,
         p_selection_stmt,
-        # p_iteration_stmt,
+        p_iteration_stmt,
         p_compound_stmt,
         p_return_stmt
     ]
     for p in possibles:
         c = p()
         if c: return c
+
+def p_iteration_stmt():
+    """
+        iteration_stmt : while ( expression ) statement
+    """
+    if match("while"):
+        if match("LPAREN"):
+            e = p_expression()
+            if e and match("RPAREN"):
+                s = p_statement()
+                if s:
+                    return Node("while",[e,s])
+        p_error()
 
 def p_selection_stmt():
     """
@@ -186,7 +199,8 @@ def p_selection_stmt():
                 s = p_statement()
                 if match("else"): #Segunda parte
                     s2 = p_statement()
-                    return Node("if",[e,s,s2]) 
+                    if s2:
+                        return Node("if",[e,s,s2]) 
                 return Node("if",[e,s]) 
         p_error()
 
