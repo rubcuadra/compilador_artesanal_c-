@@ -72,7 +72,7 @@ def p_declaration(node_type="declaration"): #Returns a Node
         elif match("LPAREN"):   # (
             params = p_params()
             if params and match("RPAREN"):
-                cps = p_compount_stmt()
+                cps = p_compound_stmt()
                 if cps: #!=None
                     return Node(node_type, [ts,decName,Node("LPAREN"),*params,Node("RPAREN"),cps ], "FUNCTION")
     p_error()
@@ -120,8 +120,7 @@ def p_type_specifier():
     if match("int") :  return Node("int")
     if match("void"):  return Node("void")
 
-#AQUI esta el problema
-def p_compount_stmt(node_type="compound_statements"): #Returns a Node
+def p_compound_stmt(node_type="compound_statements"): #Returns a 
     """
         compount_stmt : { local_declarations_list statement_list }
     """
@@ -130,7 +129,7 @@ def p_compount_stmt(node_type="compound_statements"): #Returns a Node
         sl = p_statement_list()
         if match("RCBRACES"):
             return Node(node_type,[Node("LCBRACES"),*ldl,*sl,Node("RCBRACES")])
-    p_error()
+    # p_error()
 
 def p_local_declarations_list(node_type = "local_declaration"): #Returns array
     '''
@@ -166,7 +165,7 @@ def p_statement(): #Can return None
     """
     possibles = [
         p_expression_stmt,
-        # p_compount_stmt,
+        # p_compound_stmt,
         # p_selection_stmt,
         # p_iteration_stmt,
         p_return_stmt
@@ -252,7 +251,7 @@ def p_expression(node_type="expression"):
             args = p_args()
             if match("RPAREN"):
                 return Node("CALL",[idNode]+args)
-                
+
     factor = idNode if idNode else p_factor()
     multis = p_multis(factor)
     if multis: #L es multis
