@@ -17,15 +17,26 @@ class Node:
         else:        self.children = [ ]
     
     def __str__(self):
+        return self.asString(self)
+
+    def __repr__(self):
         return f"{self.type} {self.value}"
     
     @staticmethod
-    def printTree(_node,level=0):
+    def printTree(_node,level=0): #More efficient but it only prints
         if _node is None: return
         tb = (' |  '*level) + ' |- '
         print(f"{tb}{_node.type} {_node.value if _node.value!=None else ''}" )
         for c in _node.children:
             Node.printTree(c, level= level+1)
+
+    @staticmethod
+    def asString(_node,level=0): #Returns a String
+        if _node is None: return ""
+        tb = (' |  '*level) + ' |- '
+        toRet = f"{tb}{_node.type} {_node.value if _node.value!=None else ''}\n"
+        for c in _node.children: toRet += Node.asString(c, level= level+1)
+        return toRet
 
 
 def p_program(node_type="program"): #Returns root Node
@@ -414,7 +425,7 @@ def match(ttype):
         return True
     return False
 
-def parse(imprime=True):
+def parser(imprime=True):
     if not programa: raise Exception("You should call 'globales' first")
     global tokens,token
     lexer  = CMIN_Lexer(programa)
@@ -422,7 +433,7 @@ def parse(imprime=True):
     token  = next(tokens)
     #Ya debe existir tokens y token
     result = p_program()
-    if imprime:  Node.printTree(result)
+    if imprime:  Node.printTree(result) #print(result)
     return result
     
 if __name__ == '__main__':
@@ -431,6 +442,6 @@ if __name__ == '__main__':
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
-    AST = parse(True)
+    AST = parser(True)
     
 
