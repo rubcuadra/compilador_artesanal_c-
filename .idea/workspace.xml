@@ -19,6 +19,7 @@
     <session id="-173513019">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
+          <entry key="project.closed" value="1" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.opened" value="1" />
         </counts>
@@ -53,8 +54,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="286">
-              <caret line="221" column="23" selection-start-line="221" selection-start-column="23" selection-end-line="221" selection-end-column="23" />
+            <state relative-caret-position="46">
+              <caret line="206" column="43" lean-forward="true" selection-start-line="206" selection-start-column="43" selection-end-line="206" selection-end-column="43" />
             </state>
           </provider>
         </entry>
@@ -199,8 +200,8 @@
     <frame x="140" y="42" width="1540" height="916" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Favorites" sideWeight="0.5010101" side_tool="true" visible="true" weight="0.19025367" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4989899" visible="true" weight="0.19025367" />
+      <window_info id="Favorites" sideWeight="0.5012136" side_tool="true" visible="true" weight="0.19025367" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49878642" visible="true" weight="0.19025367" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
@@ -211,7 +212,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3288835" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.39927185" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39927185" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -233,12 +234,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/parser.py</url>
-          <line>368</line>
+          <line>369</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/parser.py</url>
-          <line>221</line>
+          <line>222</line>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
       </breakpoints>
@@ -275,8 +276,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="221" column="23" selection-start-line="221" selection-start-column="23" selection-end-line="221" selection-end-column="23" />
+        <state relative-caret-position="46">
+          <caret line="206" column="43" lean-forward="true" selection-start-line="206" selection-start-column="43" selection-end-line="206" selection-end-column="43" />
         </state>
       </provider>
     </entry>

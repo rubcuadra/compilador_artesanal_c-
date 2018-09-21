@@ -3,7 +3,7 @@ Euclides para calcular mcd */
 int gcd(int u, int v){
     int x;
     x = 3*7-21+(43);
-    output( gcd(u,v) );
+    /*output( gcd(u,v) );*/
     return u;
     /* u-u/v*v == u mod v */
 }

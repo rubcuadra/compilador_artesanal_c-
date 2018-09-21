@@ -174,6 +174,7 @@ def p_statement(): #Can return None
     for p in possibles:
         c = p()
         if c: return c
+
 def p_return_stmt(node_type="return_stmt"):
     """
        return_stmt : return SEMI
@@ -203,71 +204,62 @@ def p_expression_stmt(node_type="expression_stmt"): #Can return None
 
 def p_expression(node_type="expression"): 
     """
-        expression : var EQUALS expression 
-                   | simple_expression
+        expression : ID EQUALS expression 
+                   | ID [ expression ] EQUALS expression
+                   | ID [ expression ] multis sumres relop term sumres 
+                   | ID [ expression ] sumres
+                   | factor multis sumres relop term sumres
+                   | factor multis sumres
     """
-    v = p_var() 
-    if v:
-        if match("EQUALS"):
-            e = p_expression()
-            if not e: p_error() #Checar que onda aqui
-            return Node(node_type,[v,Node("EQUALS"),e],"ASSIGN")
+    cT = token
+    if match("ID"): 
+        idNode = Node(cT.type,value = cT.value)
+        if match("EQUALS"):  #caso 1, asignar a una var
+            return Node("EQUALS",[idNode,p_expression()])
+        if match("LBRACK"):
+            e = p_expression() #Node
+            if match("RBRACK"):
+                L = Node("ARRAY_POS",[idNode,Node("LBRACK"),e,Node("RBRACK")])
+                if match("EQUALS"):
+                    return Node("EQUALS",[L,p_expression()])
+                else: #ES UN TERM
+                    
+                    #Nodo de multiplicaciones
+                    root = p_multis(L) 
 
-        elif match("LPAREN"):#ID ( args ) #Quiza meter todas las de simple que son ID
-                args = p_args()
-                if match("RPAREN"):
-                    return Node(node_type,[v,Node("LPAREN"),*args,Node("RPAREN")])
-                else:
-                    p_error()
-        elif token.type =="COMMA":
-            return v
-    #Este interfiere cuando empieza con ID
-    se = p_simple_expression()
-    if se: return se
 
-def p_simple_expression(node_type="expression_simple"):
+
+                    #Nodo de sumas
+                    else:
+                        addop = p_addop()
+
+    else:
+
+def p_sumres(L): #Puede regresar None
     """
-        additive_expression : additive_expression addop term
-                            | term
-
-        additive_expression : term { addop term }
+        sumres : { addop factor multis }
     """
-    t = p_term() #Node or None
-    if t:        #term { addop term }
-        toRet = [t]
+    res = None
+    addop = p_addop()
+    while addop:
+        addop.children = [L, p_factor()]
+        mts = p_multis(addop)
+        if mts: L = mts:
+        else:   L = addop
+        res = L
         addop = p_addop()
-        while addop:
-            tmpT = p_term()
-            toRet += [addop,tmpT]
-            addop = p_addop()
-        return Node(node_type,toRet)
-    return t
+    return res
 
-def p_term(node_type="term"):
+def p_multis(L): #Puede regresar None
     """
-        term : term mulop factor 
-             | factor
-
-        term : factor { mulop factor }
+        multis : { mulop factor }
     """
-    f = p_factor()
-    if f:
-        toRet = [f]
+    mulop = p_mulop()    
+    while mulop:
+        mulop.children = [L, p_factor()] #p_factor no puede ser None
+        L = mulop
         mulop = p_mulop()
-        while mulop:
-            tmpF = p_factor()
-            toRet += [mulop,tmpF]
-            mulop = p_mulop()
-        return Node(node_type,toRet)
-    return f
-
-def p_mulop(node_type="mulop"):
-    if match("TIMES"):    return Node(node_type,[],"TIMES")
-    elif match("DIVIDE"): return Node(node_type,[],"DIVIDE")
-
-def p_addop(node_type="addop"):
-    if match("PLUS"):   return Node(node_type,[],"PLUS")
-    elif match("MINUS"): return Node(node_type,[],"MINUS")
+    return mulop
 
 def p_factor(node_type="factor"):
     """
@@ -283,7 +275,6 @@ def p_factor(node_type="factor"):
             if e: return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
             return Node(node_type,[Node("LPAREN"),Node("RPAREN")])
         p_error()    
-        
     else:
         cT = token
         if match("INTEGER"):     #NUM
@@ -298,8 +289,24 @@ def p_factor(node_type="factor"):
                 args = p_args()
                 if match("RPAREN"):
                     return Node(node_type,[decName,Node("LPAREN"),*args,Node("RPAREN")])
-                else:
-                    p_error()
+                p_error()
+
+def p_mulop(node_type="mulop"):
+    if match("TIMES"):  return Node(node_type,[],"TIMES")
+    if match("DIVIDE"): return Node(node_type,[],"DIVIDE")
+
+def p_addop(node_type="addop"):
+    if match("PLUS"):   return Node(node_type,[],"PLUS")
+    if match("MINUS"):  return Node(node_type,[],"MINUS")
+
+def p_relop(node_type="addop"):
+    if match('LT'):     return Node(node_type,[],'LT')
+    if match('LE'):     return Node(node_type,[],'LE')
+    if match('GT'):     return Node(node_type,[],'GT')
+    if match('GE'):     return Node(node_type,[],'GE')
+    if match('EQ'):     return Node(node_type,[],'EQ')
+    if match('NE'):     return Node(node_type,[],'NE')
+
 
 def p_args(): #Returns a list
     """
@@ -315,21 +322,6 @@ def p_args(): #Returns a list
             if not e: p_error()
         else: break
     return r
-
-def p_var(node_type = "var"): #Can return None
-    """
-        var : ID 
-            | ID [ expression ]
-    """
-    cT = token
-    if match("ID"):
-        decName = Node(cT.type, value=cT.value)
-        if match("LBRACK"):
-            e = p_expression()
-            if e and match("RBRACK"): return Node(node_type,[decName,Node("LBRACK"),e,Node("RBRACK")],"ARRAY")
-            else:                     p_error()
-        else:
-            return Node(node_type,[decName],"VAR")
 
 def p_var_declaration(node_type = "declaration"): #Can return None
     """ declaration : type_specifier ID ; 
