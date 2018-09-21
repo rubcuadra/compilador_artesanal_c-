@@ -286,12 +286,13 @@ def p_expression(node_type="expression"):
 
     factor = idNode if idNode else p_factor()
     multis = p_multis(factor)
+    #AQUI HAY BUGGS
     if multis: #L es multis
         sumres = p_sumres(multis)
         relop = p_relop()
         if sumres: #L es sumres
             if relop:
-                term2 = p_term()
+                term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [sumres,sumres2]
                 else:       relop.children = [sumres,term]
@@ -299,7 +300,7 @@ def p_expression(node_type="expression"):
                 return sumres
         else:  #L es multis
             if relop:
-                term2 = p_term()
+                term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [multis,sumres2]
                 else:       relop.children = [multis,term]
@@ -310,7 +311,7 @@ def p_expression(node_type="expression"):
         relop = p_relop()
         if sumres: #L is sumres
             if relop:
-                term2 = p_term()
+                term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [sumres,sumres2]
                 else:       relop.children = [sumres,term]
@@ -318,7 +319,7 @@ def p_expression(node_type="expression"):
                 return sumres
         else: #L is factor
             if relop:
-                term2 = p_term()
+                term2 = p_factor()
                 sumres2 = p_sumres(term2)
                 if sumres2: relop.children = [factor,sumres2]
                 else:       relop.children = [factor,term]
@@ -463,7 +464,7 @@ def parse(imprime=True):
     
 if __name__ == '__main__':
     #Segundo Parcial
-    f = open('example2.c-', 'r')
+    f = open('example3.c-', 'r')
     programa = f.read()
     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
     globales(programa)
