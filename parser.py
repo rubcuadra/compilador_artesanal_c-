@@ -238,7 +238,7 @@ def p_expression_stmt(node_type="expression_stmt"): #Can return None
                 return e 
             p_error()
 
-def p_expression(node_type="expression"): 
+def p_expression(node_type="expression",deb=False): 
     """
         expression : ID EQUALS expression 
                    | ID [ expression ] EQUALS expression
@@ -273,7 +273,7 @@ def p_expression(node_type="expression"):
             args = p_args()
             if match("RPAREN"):
                 return Node("CALL",[idNode]+args)
-
+    
     factor = idNode if idNode else p_factor()
     factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
     relop = p_relop() #Checar si tiene relops
@@ -284,9 +284,10 @@ def p_expression(node_type="expression"):
         return relop
     return factor
 
-def p_operations(factor):
+def p_operations(factor): #Create tree of operations and return it
     multis = p_multis(factor)
     sumres = p_sumres(multis) if multis else p_sumres(factor)
+    sumres = sumres if sumres else multis #Caso si multis pero no sumres
     return sumres if sumres else factor 
 
 def p_sumres(L): #Puede regresar None
@@ -327,12 +328,10 @@ def p_factor(node_type="factor"):
                | ID ( args )
     """
     if match("LPAREN"):          #( expression )
-        e = p_expression()
+        e = p_expression(deb=True)
         if match("RPAREN"):
-            if e: 
-                return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
+            if e: return Node(node_type,[e])
             p_error()
-            
         p_error()    
     else:
         cT = token
