@@ -247,7 +247,12 @@ def p_expression(node_type="expression"):
                         sumres = p_sumres(L)
                         if sumres: return sumres
                         else:      return L
-    else:
+        if match("LPAREN"):
+            args = p_args()
+            if match("RPAREN"):
+                return Node("CALL",[idNode]+args)
+        return idNode
+    else: #Terms 
         factor = p_factor()
         multis = p_multis(factor)
         if multis: #L es multis
@@ -411,8 +416,6 @@ def globales(prog, pos=None, long=None):
 def match(ttype):
     global token
     if ttype == token.type:
-        if token.value =='output':
-            print("SE")
         token = next(tokens) #Move to next token
         return True
     return False
@@ -423,12 +426,7 @@ def parse(imprime=True):
     tokens = TokensGenerator(programa)
     token = next(tokens)
     #Ya debe existir tokens y token
-    result = None
-    
-    
     result = p_program()
-    
-
     if imprime: Node.printTree(result)
     return result
     
