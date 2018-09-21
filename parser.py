@@ -14,7 +14,7 @@ def TokensGenerator(program):
     lexer.input(program)
     ret = lexer.token()
     while not ret in [None, eof_symbol]:
-        print(f"{ret.type} => {ret.value}")
+        # print(f"{ret.type} => {ret.value}")
         yield ret
         ret = lexer.token()
 
@@ -184,7 +184,9 @@ def p_return_stmt(node_type="return_stmt"):
             return Node(node_type,[Node("return"),Node("SEMI")])
         else:
             e = p_expression()
-            return Node(node_type,[Node("return"),e,Node("SEMI")])
+            if match("SEMI"):
+                return Node(node_type,[Node("return"),e,Node("SEMI")])
+            p_error()
 
 
 def p_expression_stmt(node_type="expression_stmt"): #Can return None
@@ -376,7 +378,6 @@ def p_args(): #Returns a list
     while e:
         r.append(e)
         if match("COMMA"): 
-            print("args",token)
             e = p_expression()
             if not e: p_error()
         else: break
