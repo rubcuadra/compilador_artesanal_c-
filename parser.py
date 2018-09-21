@@ -206,15 +206,24 @@ def p_expression(node_type="expression"):
         expression : var EQUALS expression 
                    | simple_expression
     """
-    se = p_simple_expression()
-    if se: return se
-
     v = p_var() 
     if v:
         if match("EQUALS"):
             e = p_expression()
             if not e: p_error() #Checar que onda aqui
             return Node(node_type,[v,Node("EQUALS"),e],"ASSIGN")
+
+        elif match("LPAREN"):#ID ( args ) #Quiza meter todas las de simple que son ID
+                args = p_args()
+                if match("RPAREN"):
+                    return Node(node_type,[v,Node("LPAREN"),*args,Node("RPAREN")])
+                else:
+                    p_error()
+        elif token.type =="COMMA":
+            return v
+    #Este interfiere cuando empieza con ID
+    se = p_simple_expression()
+    if se: return se
 
 def p_simple_expression(node_type="expression_simple"):
     """
@@ -234,7 +243,7 @@ def p_simple_expression(node_type="expression_simple"):
         return Node(node_type,toRet)
     return t
 
-def p_term():
+def p_term(node_type="term"):
     """
         term : term mulop factor 
              | factor
@@ -270,9 +279,11 @@ def p_factor(node_type="factor"):
     """
     if match("LPAREN"):          #( expression )
         e = p_expression()
-        if e and match("RPAREN"):
-            return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
-        p_error() #Necesario??
+        if match("RPAREN"):
+            if e: return Node(node_type,[Node("LPAREN"),e,Node("RPAREN")])
+            return Node(node_type,[Node("LPAREN"),Node("RPAREN")])
+        p_error()    
+        
     else:
         cT = token
         if match("INTEGER"):     #NUM
@@ -327,18 +338,19 @@ def p_var_declaration(node_type = "declaration"): #Can return None
         Similar to p_declaration but without functions and can return None
     """
     ts = p_type_specifier() #Type of var
-    cT = token              #ID value
-    if match("ID"):
-        decName = Node(cT.type, value=cT.value)
-        if match("SEMI"):     # ;
-            return Node(node_type, [ts,decName,Node("SEMI")], "VARIABLE")
-        elif match("LBRACK"):   # [
-            cT = token
-            iVal = Node(cT.type, value=cT.value) #INTEGER value
-            if match("INTEGER") and match("RBRACK") and match("SEMI"):
-                return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ], "ARRAY")
-        else:
-            p_error()
+    if ts:
+        cT = token              #ID value
+        if match("ID"):
+            decName = Node(cT.type, value=cT.value)
+            if match("SEMI"):     # ;
+                return Node(node_type, [ts,decName,Node("SEMI")], "VARIABLE")
+            elif match("LBRACK"):   # [
+                cT = token
+                iVal = Node(cT.type, value=cT.value) #INTEGER value
+                if match("INTEGER") and match("RBRACK") and match("SEMI"):
+                    return Node(node_type, [ts,decName,Node("LBRACK"),iVal,Node("RBRACK"),Node("SEMI") ], "ARRAY")
+            else:
+                p_error()
     
 
 def p_error():
@@ -353,6 +365,8 @@ def globales(prog, pos=None, long=None):
 def match(ttype):
     global token
     if ttype == token.type:
+        if token.value =='output':
+            print("SE")
         token = next(tokens) #Move to next token
         return True
     return False

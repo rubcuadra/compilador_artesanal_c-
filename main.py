@@ -17,14 +17,15 @@ if __name__ == '__main__':
 	# 	token, tokenString = getToken(True)
 
 	#Segundo Parcial
-	from globalTypes import *
-	from parser import parser, globales
-	f = open('example.c‐', 'r')
-	programa = f.read()
-	progLong = len(programa)
-	programa = programa + '$'
-	posicion = 0
-	
-	globales(programa, posicion, progLong)
-	AST = parser(True)
+	# from globalTypes import *
+	# from parser import parser, globales
+	# f = open('example.c‐', 'r')
+	# programa = f.read()
+	# progLong = len(programa)
+	# programa = programa + '$'
+	# posicion = 0
+	#
+	# globales(programa, posicion, progLong)
+	# AST = parser(True)
 		
+	pass
