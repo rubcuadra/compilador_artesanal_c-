@@ -222,19 +222,73 @@ def p_expression(node_type="expression"):
                 L = Node("ARRAY_POS",[idNode,Node("LBRACK"),e,Node("RBRACK")])
                 if match("EQUALS"):
                     return Node("EQUALS",[L,p_expression()])
-                else: #ES UN TERM
-                    
+                else: 
                     #Nodo de multiplicaciones
-                    root = p_multis(L) 
-
-
-
-                    #Nodo de sumas
-                    else:
-                        addop = p_addop()
-
-    else:
-
+                    multis = p_multis(L) 
+                    if multis:  #sumres relop term sumres 
+                        sumres = p_sumres(multis)
+                        if sumres:
+                            relop = p_relop()
+                            if relop:
+                                term = p_term()
+                                sumres2 = p_sumres(term)
+                                if sumres2: relop.children = [sumres,sumres2]
+                                else:       relop.children = [sumres,term]
+                            return sumres #SEGURO??
+                        else:
+                            relop = p_relop()
+                            if relop:
+                                term = p_term()
+                                sumres2 = p_sumres(term)
+                                if sumres2: relop.children = [multis,sumres2]
+                                else:       relop.children = [multis,term]
+                            return multis #SEGURO??
+                    else:     
+                        sumres = p_sumres(L)
+                        if sumres: return sumres
+                        else:      return L
+        else:
+            factor = p_factor()
+            multis = p_multis(factor)
+            if multis: #L es multis
+                sumres = p_sumres(multis)
+                relop = p_relop()
+                if sumres: #L es sumres
+                    if relop:
+                        term2 = p_term()
+                        sumres2 = p_sumres(term2)
+                        if sumres2: relop.children = [sumres,sumres2]
+                        else:       relop.children = [sumres,term]
+                    else: 
+                        return sumres
+                else:  #L es multis
+                    if relop:
+                        term2 = p_term()
+                        sumres2 = p_sumres(term2)
+                        if sumres2: relop.children = [multis,sumres2]
+                        else:       relop.children = [multis,term]
+                    else: 
+                        return multis
+            else:      #L es factor
+                sumres = p_sumres(factor)
+                relop = p_relop()
+                if sumres: #L is sumres
+                    if relop:
+                        term2 = p_term()
+                        sumres2 = p_sumres(term2)
+                        if sumres2: relop.children = [sumres,sumres2]
+                        else:       relop.children = [sumres,term]
+                    else: 
+                        return sumres
+                else: #L is factor
+                    if relop:
+                        term2 = p_term()
+                        sumres2 = p_sumres(term2)
+                        if sumres2: relop.children = [factor,sumres2]
+                        else:       relop.children = [factor,term]
+                    else: 
+                        return factor
+    
 def p_sumres(L): #Puede regresar None
     """
         sumres : { addop factor multis }
