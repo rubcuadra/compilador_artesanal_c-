@@ -38,7 +38,6 @@ class Node:
         for c in _node.children: toRet += Node.asString(c, level= level+1)
         return toRet
 
-
 def p_program(node_type="program"): #Returns root Node
     """program : declaration-list"""     
     return Node(node_type, children = p_declaration_list() )
@@ -439,11 +438,11 @@ def parser(imprime=True):
     if imprime:  Node.printTree(result) #print(result)
     return result
     
-if __name__ == '__main__':
-    #Segundo Parcial
-    f = open('examples/3.c-', 'r')
-    programa = f.read()
-    programa = programa + '$' #Cuando quede hecho todo ver como remover el $
-    globales(programa)
-    AST = parser(True)
-    
+# if __name__ == '__main__':
+#     #Segundo Parcial
+#     f = open('examples/3.c-', 'r')
+#     programa = f.read()
+#     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
+#     globales(programa)
+#     AST = parser(True)
+#     
