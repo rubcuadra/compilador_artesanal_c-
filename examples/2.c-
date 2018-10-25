@@ -1,6 +1,7 @@
 /* Un programa que nalksnflakdsjfnaskljndf
     SKDLJvnalskdvnaslkdjnvsa */
 
+int z;
 int x[10];
 
 int minloc (int a[], int low, int high)

@@ -115,12 +115,15 @@ def p_param(node_type="param"): #Can return None
             return Node(node_type, [ts,decName], "VAR") 
 
 def p_type_specifier():
+    """
+        type_specifier : int | void
+    """
     if match("int") :  return Node("int")
     if match("void"):  return Node("void")
 
 def p_compound_stmt(node_type="compound_statements"): #Returns a 
     """
-        compount_stmt : { local_declarations_list statement_list }
+        compound_stmt : { local_declarations_list statement_list }
     """
     if match("LCBRACES"):
         ldl = p_local_declarations_list()
