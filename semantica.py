@@ -31,44 +31,19 @@ class ScopeTree():
         else:                 return None
 
     @staticmethod
-    def appendChildren(root, parserNode, scope=None):
+    def appendChildren(root, parserNode):
         #Scope is created in this cases
         if parserNode.type == "declaration" and parserNode.value == "FUNCTION": 
             _scope = ScopeTree(parent=root,tag=parserNode.children[1].value)
-            #Set params
+            root.children.append(_scope)
+            #Set params to this new scope
             for param in parserNode.children[2:-1]:
                 if param.type == 'void': continue #Skip void in params
                 _scope.addSymbol(param)
-            #Body -> compound_statements
-            for statement in parserNode.children[-1].children: 
-                if statement.type == 'declaration': #Define it in the scope
-                    _scope.addSymbol(statement)
-                elif statement.type == "EQUALS":    #Validate var exist and check that assign is of the same type
-                    if statement.children[0].type in ["ARRAY_POS", "ID"]:
-                        s = getType(statement.children[0],_scope)
-                        gt = getType(statement.children[1],_scope)
-                        if s == gt: continue
-                        raise Exception(f"Wrong data type assignment: {s[0]} {statement.children[0].value} => {gt}")
-                    else:
-                        raise Exception("Wrong assignment")
-                elif statement.type == "CALL":      #Check called func exists and it is void
-                    s = getType(statement.children[0],_scope)
-                    if not s:     raise Exception(f"Calling function without definition '{statement.children[0].value}'")
-                    if s!='void': raise Exception(f"Called NON void function without assignment")
-                elif statement.type == "return_stmt":  #Check returns exist
-                    s = _scope.getSymbol(_scope.tag) #SI es None es que we fucked up algo
-                    if s[0] == 'void' and len(statement.children)>1: raise Exception("ERROR: void function returning values")
-                    t = getType(statement.children[1],_scope)
-                    if s[0] == t: continue
-                    raise Exception(f"Wrong return type {s[0]} != {t}")
-                elif statement.type in ["while","if","else"]: #Recursivo
-                    print(statement)
-                    pass #TODO
-                else: 
-                    raise Exception(f"unkown type {statement.type}")
-            root.children.append(_scope)
-        elif False: #Case while,if,else. Scope must be something
-            pass #TODO
+            #It just validates everything is fine, otherwise it raises exceptions
+            validateCompoundStatements(parserNode[-1],_scope)
+        else:
+            raise Exception("Wrong declaration")
 
     def __str__(self):
         s = ""
@@ -77,6 +52,49 @@ class ScopeTree():
         for key,val in self.scope.items():
             s += f"\t{val[0]} {key} - {val[1].value}\n"
         return s
+
+#Another block - IF/ELSE/WHILE/Function after declarations
+def validateCompoundStatements(statementBlock, _scope): 
+    if statementBlock.type == 'return_stmt':
+        syb = _scope.getSymbol(_scope.tag)
+        if syb[0] == getType(statementBlock[1],_scope): return
+        else: raise Exception(f"Wrong return type on function {_scope.tag}")
+    elif statementBlock.type != 'compound_statements': raise Exception("Not a statement block ",statementBlock)
+    #Body -> compound_statements
+    for statement in statementBlock.children: 
+        if statement.type == 'declaration': #Define it in the scope
+            _scope.addSymbol(statement)
+        elif statement.type == "EQUALS":    #Validate var exist and check that assign is of the same type
+            if statement[0].type in ["ARRAY_POS", "ID"]:
+                s = getType(statement[0],_scope)
+                gt = getType(statement[1],_scope)
+                if s == gt and s!=None: continue
+                raise Exception(f"Wrong data type assignment: {s[0]} {statement[0].value} => {gt}")
+            else:
+                raise Exception("Wrong assignment")
+        elif statement.type == "CALL":      #Check called func exists and it is void
+            s = getType(statement[0],_scope)
+            if not s:     raise Exception(f"Calling function without definition '{statement[0].value}'")
+            if s!='void': raise Exception(f"Called NON void function without assignment")
+        elif statement.type == "return_stmt":  #Check returns exist
+            s = _scope.getSymbol(_scope.tag) #SI es None es que we fucked up algo
+            if s[0] == 'void' and len(statement.children)>1: raise Exception("ERROR: void function returning values")
+            t = getType(statement[1],_scope)
+            if s[0] == t: continue
+            raise Exception(f"Wrong return type {s[0]} != {t}")
+        elif statement.type == "while":
+            #We can only compare between ints
+            if getType(statement[0],_scope) =='int':  validateCompoundStatements(statement[1],_scope)                
+            else:                                     raise Exception("Wrong comparison types")
+        elif statement.type == "if": #Recursivo
+            if getType(statement[0],_scope) =='int': #We can only compare between ints
+                #IF, ELSE
+                for block in statement[1:]: 
+                    validateCompoundStatements(block,_scope)               
+            else:                                                
+                raise Exception("Wrong comparison types")
+        else: 
+            raise Exception(f"unkown type {statement.type}")
 
 #This is the right child of an EQUAL Node
 def getType(parseNode,scopeNode):
@@ -102,6 +120,11 @@ def getType(parseNode,scopeNode):
             rt = getType(parseNode.children[1],scopeNode)
             if lt == rt: return lt
             raise Exception("Wrong types on mulop")
+        if parseNode.type == 'relop':
+            lt = getType(parseNode.children[0],scopeNode)
+            rt = getType(parseNode.children[1],scopeNode)
+            if lt == rt: return lt
+            raise Exception("Wrong types on relop")
         elif parseNode.type == 'CALL':
             c = getType(parseNode.children[0],scopeNode)
             if len(parseNode.children)>1: 
@@ -115,8 +138,7 @@ def getType(parseNode,scopeNode):
             elif parseNode.value == 'VAR':   return parseNode.children[0].type
             else:           raise Exception("unexpected param type",parseNode)
         else:
-            print('TODO',parseNode.type, parseNode.value)
-    # return 'int'
+            raise Exception("unkown type", parseNode)
 
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
 #Regresa la tabla de simbolos
@@ -129,16 +151,15 @@ def tabla(node, imprime = True):
         for ch in node.children:  
             st.addSymbol(ch)
             if ch.value == "FUNCTION": ScopeTree.appendChildren(st,ch) #RECURSION
-    else:
-        raise Exception("error, program starts with", ch.type)
-
-    # for c in st.children: print(c)
+    else: raise Exception("error, program starts with", ch.type)
+    if imprime: print(st)
+    return st
     
-
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
 #Regresa la tabla de simbolos
 def semantica(tree, imprime = True):
-    ts = tabla(tree,imptime)
+    ts = tabla(tree,imprime)
+    
     '''
     TODO
     Utiliza reglas lógicas de inferencia para implementar la semántica de C‐. Ver
@@ -159,5 +180,4 @@ if __name__ == '__main__':
     
     globales(programa, posicion, progLong)
     AST = parser(False)
-    
-    t = tabla(AST)
+    semantica(AST,True)

@@ -13,6 +13,7 @@ int minloc (int a[], int low, int high)
         { if (a[i] < x)
             { x = a[i];
               k = i; }
+          else{ x = 3; k = 3*x+9;}
           i = i + 1;
         }
     return k;

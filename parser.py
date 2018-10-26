@@ -22,6 +22,9 @@ class Node:
     def __repr__(self):
         return f"{self.type} {self.value}"
     
+    def __getitem__(self,ix):
+        return self.children[ix]
+
     @staticmethod
     def printTree(_node,level=0): #More efficient but it only prints
         if _node is None: return
@@ -364,7 +367,7 @@ def p_addop(node_type="addop"):
     if match("PLUS"):   return Node(node_type,[],"PLUS")
     if match("MINUS"):  return Node(node_type,[],"MINUS")
 
-def p_relop(node_type="addop"):
+def p_relop(node_type="relop"):
     if match('LT'):     return Node(node_type,[],'LT')
     if match('LE'):     return Node(node_type,[],'LE')
     if match('GT'):     return Node(node_type,[],'GT')

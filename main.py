@@ -1,8 +1,9 @@
 #Ruben Cuadra A01019102
 if __name__ == '__main__':
-	# Segundo Parcial
+	# Parcial Final
 	from globalTypes import *
-	from parser import parser, globales
+	from parser import *
+	from semantica import *
 	f = open('examples/3.c-', 'r')
 	programa = f.read()
 	progLong = len(programa)
@@ -10,4 +11,5 @@ if __name__ == '__main__':
 	posicion = 0
 	
 	globales(programa, posicion, progLong)
-	AST = parser(False)
+	AST = parser(True)
+	semantica(AST, True)
