@@ -11,6 +11,7 @@ class ScopeTree():
         self.parent   = parent
         self.tag      = tag
         self.children = []
+        self.depth    = None if parent else 0
     
     #dataType, strucType, value
     def addSymbol(self, s): 
@@ -45,13 +46,31 @@ class ScopeTree():
         else:
             raise Exception("Wrong declaration")
 
-    def __str__(self):
+    def __str__(self): 
+        return self.getStr(level=self.getDepth())
+
+    def getDepth(self):
+        if   self.depth:  return self.depth
+        elif self.parent: self.depth = 1+self.parent.getDepth()
+        return            self.depth
+
+    def getStr(self, level=0):
         s = ""
-        if self.parent: s += str(self.parent)
+        if self.parent: s += self.parent.getStr(level-1)
+        s += '\t'*level
         s += f"{self.tag}\n"
         for key,val in self.scope.items():
-            s += f"\t{val[0]} {key} - {val[1].value}\n"
-        return s
+            s += '\t'*(level+1)
+            s += f"{val[0]} {key} - {val[1].value}\n"
+        return s+'\n'
+
+    #Goes to a leaf and prints the scope
+    def printAllScopes(self):
+        if self.children:
+            for ch in self.children:
+                ch.printAllScopes()
+        else:
+            print(self)
 
 #Another block - IF/ELSE/WHILE/Function after declarations
 def validateCompoundStatements(statementBlock, _scope): 
@@ -152,7 +171,7 @@ def tabla(node, imprime = True):
             st.addSymbol(ch)
             if ch.value == "FUNCTION": ScopeTree.appendChildren(st,ch) #RECURSION
     else: raise Exception("error, program starts with", ch.type)
-    if imprime: print(st)
+    if imprime: st.printAllScopes()
     return st
     
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
