@@ -1,5 +1,6 @@
 /* Un programa para realizar el algoritmo de 
 Euclides para calcular mcd */
+int k[10];
 int gcd(int u, int v){
     return gcd(v ,u-u/v*v);
     /* u-u/v*v == u mod v */
@@ -7,6 +8,7 @@ int gcd(int u, int v){
 
 void main(void)
 {   int x; int y;
+	k[4]=5*9; 
     x = input(); y = input();
     output( gcd(x,y) );
 }
