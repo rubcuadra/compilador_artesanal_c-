@@ -1,5 +1,9 @@
 from enum import Enum
 
+def error(node,msg):
+    if node.token:raise Exception(f"ERROR LINE {node.token.lineno+1}, CHAR {node.token.lexpos+1} - {msg}")    
+    else:         raise Exception(f"ERROR : {msg}")
+
 class defTypes(Enum):
     ARR='array'
     VAR='variable'
@@ -24,7 +28,7 @@ class ScopeTree():
         elif s.value == "FUNCTION":
             self.scope[s.children[1].value] = (s.children[0].type,defTypes.FUN,*s.children[2:-1]) #functions are initialized in None
         else: 
-            raise Exception("Wrong declaration")
+            error(s,"Wrong declaration")
 
     def getSymbol(self,var): 
         if var in self.scope: return self.scope[var]
@@ -44,7 +48,7 @@ class ScopeTree():
             #It just validates everything is fine, otherwise it raises exceptions
             validateCompoundStatements(parserNode[-1],_scope)
         else:
-            raise Exception("Wrong declaration")
+            error(parserNode,"Wrong declaration")
 
     def __str__(self): 
         return self.getStr(level=self.getDepth())
@@ -77,8 +81,8 @@ def validateCompoundStatements(statementBlock, _scope):
     if statementBlock.type == 'return_stmt':
         syb = _scope.getSymbol(_scope.tag)
         if syb[0] == getType(statementBlock[1],_scope): return
-        else: raise Exception(f"Wrong return type on function {_scope.tag}")
-    elif statementBlock.type != 'compound_statements': raise Exception("Not a statement block ",statementBlock)
+        else: error(statementBlock,f"Wrong return type on function {_scope.tag}")
+    elif statementBlock.type != 'compound_statements': error(statementBlock,"Not a statement block ")
     #Body -> compound_statements
     for statement in statementBlock.children: 
         if statement.type == 'declaration': #Define it in the scope
@@ -88,44 +92,44 @@ def validateCompoundStatements(statementBlock, _scope):
                 s = getType(statement[0],_scope)
                 gt = getType(statement[1],_scope)
                 if s == gt and s!=None: continue
-                raise Exception(f"Wrong data type assignment: {s[0]} {statement[0].value} => {gt}")
+                error(statement,f"Wrong data type assignment: {s[0]} {statement[0].value} => {gt}")
             else:
-                raise Exception("Wrong assignment")
+                error(statement,"Wrong assignment")
         elif statement.type == "CALL":      #Check called func exists and it is void
             s = getType(statement[0],_scope)
-            if not s:     raise Exception(f"Calling function without definition '{statement[0].value}'")
-            if s!='void': raise Exception(f"Called NON void function without assignment")
+            if not s:     error(statement,f"Calling function without definition '{statement[0].value}'")
+            if s!='void': error(statement,f"Called NON void function without assignment")
         elif statement.type == "return_stmt":  #Check returns exist
             s = _scope.getSymbol(_scope.tag) #SI es None es que we fucked up algo
-            if s[0] == 'void' and len(statement.children)>1: raise Exception("ERROR: void function returning values")
+            if s[0] == 'void' and len(statement.children)>1: error(statement,"ERROR: void function returning values")
             t = getType(statement[1],_scope)
             if s[0] == t: continue
-            raise Exception(f"Wrong return type {s[0]} != {t}")
+            error(statement,f"Wrong return type {s[0]} != {t}")
         elif statement.type == "while":
             #We can only compare between ints
             if getType(statement[0],_scope) =='int':  validateCompoundStatements(statement[1],_scope)                
-            else:                                     raise Exception("Wrong comparison types")
+            else:                                     error(statement,"Wrong comparison types")
         elif statement.type == "if": #Recursivo
             if getType(statement[0],_scope) =='int': #We can only compare between ints
                 #IF, ELSE
                 for block in statement[1:]: 
                     validateCompoundStatements(block,_scope)               
             else:                                                
-                raise Exception("Wrong comparison types")
+                error(statement,"Wrong comparison types")
         else: 
-            raise Exception(f"unkown type {statement.type}")
+            error(statement,f"unkown type {statement.type}")
 
 #This is the right child of an EQUAL Node
 def getType(parseNode,scopeNode):
     if parseNode.type == 'ID':
         c = scopeNode.getSymbol(parseNode.value)
         if c: return c[0]
-        else: raise Exception(f"undefined variable {parseNode.value}")
+        else: error(parseNode,f"undefined variable {parseNode.value}")
     elif parseNode.type == "ARRAY_POS": 
         c = scopeNode.getSymbol(parseNode.children[0].value)
         #TODO parseNode.children[2] can be an expression with equals, check types??
         if c: return c[0]
-        else: raise Exception(f"undefined variable {parseNode.children[0].value}")
+        else: error(parseNode,f"undefined variable {parseNode.children[0].value}")
     elif parseNode.type == "INTEGER":  
         return 'int' 
     else: #Opps
@@ -133,31 +137,31 @@ def getType(parseNode,scopeNode):
             lt = getType(parseNode.children[0],scopeNode)
             rt = getType(parseNode.children[1],scopeNode)
             if lt == rt: return lt
-            raise Exception("Wrong types on addop")
+            error(parseNode,f"Wrong types on operator {parseNode.value}")
         if parseNode.type == 'mulop':
             lt = getType(parseNode.children[0],scopeNode)
             rt = getType(parseNode.children[1],scopeNode)
             if lt == rt: return lt
-            raise Exception("Wrong types on mulop")
+            error(parseNode,f"Wrong types on operator {parseNode.value}")
         if parseNode.type == 'relop':
             lt = getType(parseNode.children[0],scopeNode)
             rt = getType(parseNode.children[1],scopeNode)
             if lt == rt: return lt
-            raise Exception("Wrong types on relop")
+            error(parseNode,f"Wrong types on operator {parseNode.value}")
         elif parseNode.type == 'CALL':
             c = getType(parseNode.children[0],scopeNode)
             if len(parseNode.children)>1: 
                 f = scopeNode.getSymbol(parseNode.children[0].value)
                 for i,passedParam in enumerate(parseNode.children[1:], start=2):
                     if getType(f[i],scopeNode) != getType(passedParam,scopeNode): 
-                        raise Exception(f"Wrong param type: function {parseNode.children[0].value} param #{start-1}")
+                        error(parseNode,f"Wrong param type: function {parseNode.children[0].value} param #{start-1}")
             return c
         elif parseNode.type == 'param':
             if parseNode.value   == 'ARRAY': return parseNode.children[0].type
             elif parseNode.value == 'VAR':   return parseNode.children[0].type
-            else:           raise Exception("unexpected param type",parseNode)
+            else:           error(node,"unexpected param type",parseNode)
         else:
-            raise Exception("unkown type", parseNode)
+            error(parseNode,"unkown type")
 
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
 #Regresa la tabla de simbolos
@@ -170,13 +174,14 @@ def tabla(node, imprime = True):
         for ch in node.children:  
             st.addSymbol(ch)
             if ch.value == "FUNCTION": ScopeTree.appendChildren(st,ch) #RECURSION
-    else: raise Exception("error, program starts with", ch.type)
+    else: error(node,"error, program starts with", ch.type)
     if imprime: st.printAllScopes()
     return st
     
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
 #Regresa la tabla de simbolos
 def semantica(tree, imprime = True):
+    
     ts = tabla(tree,imprime)
     
     '''
@@ -191,7 +196,7 @@ if __name__ == '__main__':
     # Segundo Parcial
     from globalTypes import *
     from parser import parser, globales
-    f = open('examples/2.c-', 'r')
+    f = open('examples/3.c-', 'r')
     programa = f.read()
     progLong = len(programa)
     programa = programa + TokenType.ENDFILE.value
