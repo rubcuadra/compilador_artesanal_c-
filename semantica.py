@@ -51,30 +51,38 @@ class ScopeTree():
             error(parserNode,"Wrong declaration")
 
     def __str__(self): 
-        return self.getStr(level=self.getDepth())
+        return self.printFromBottom(level=self.getDepth())
 
     def getDepth(self):
         if   self.depth:  return self.depth
         elif self.parent: self.depth = 1+self.parent.getDepth()
         return            self.depth
 
-    def getStr(self, level=0):
+    def printFromBottom(self,level=0):
         s = ""
         if self.parent: s += self.parent.getStr(level-1)
         s += '\t'*level
         s += f"{self.tag}\n"
         for key,val in self.scope.items():
             s += '\t'*(level+1)
-            s += f"{val[0]} {key} - {val[1].value}\n"
-        return s+'\n'
+            s += f"{val[0]} {key} - {val[1].value} {val[2:]}\n"
+        return s + "\n"
+
+    def getStr(self, level=0):
+        s = ""
+        s += '\t'*level
+        s += f"{self.tag}\n"
+        for key,val in self.scope.items():
+            s += '\t'*(level+1)
+            s += f"{val[0]} {key} - {val[1].value} {val[2:]}\n"
+        return s
 
     #Goes to a leaf and prints the scope
     def printAllScopes(self):
+        print(self.getStr(level=self.getDepth()))
         if self.children:
             for ch in self.children:
                 ch.printAllScopes()
-        else:
-            print(self)
 
 #Another block - IF/ELSE/WHILE/Function after declarations
 def validateCompoundStatements(statementBlock, _scope): 
@@ -127,6 +135,9 @@ def getType(parseNode,scopeNode):
         else: error(parseNode,f"undefined variable {parseNode.value}")
     elif parseNode.type == "ARRAY_POS": 
         c = scopeNode.getSymbol(parseNode.children[0].value)
+        if parseNode.children[2]==None: error(parseNode,"Wrong access to array") 
+        t = getType(parseNode.children[2],scopeNode)
+        if t != 'int': error(parseNode,f"wrong access to array, index of type {t}")
         #TODO parseNode.children[2] can be an expression with equals, check types??
         if c: return c[0]
         else: error(parseNode,f"undefined variable {parseNode.children[0].value}")
@@ -181,15 +192,8 @@ def tabla(node, imprime = True):
 #Recibe como argumento el resultado de la funcion parser() en el archivo parser.py
 #Regresa la tabla de simbolos
 def semantica(tree, imprime = True):
-    
     ts = tabla(tree,imprime)
-    
-    '''
-    TODO
-    Utiliza reglas lógicas de inferencia para implementar la semántica de C‐. Ver
-    descripción de la semántica de C‐ en el documento en Bb).
-    '''
-    return None
+    return True
 
 #Ruben Cuadra A01019102
 if __name__ == '__main__':

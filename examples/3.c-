@@ -8,7 +8,7 @@ int gcd(int u, int v){
 
 void main(void)
 {   int x; int y;
-	k[4]=5*9; 
+	k[0]=5*9; 
     x = input(); y = input();
     output( gcd(x,y) );
 }
