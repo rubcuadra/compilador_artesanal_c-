@@ -122,11 +122,10 @@ def generateCode(node, tables, generator):
     elif node.type == "ID":
         varName = node.value
         '''
-            TODO: Get value of var called *varName*
+            TODO: Get value of var called *varName* **TEST
         '''
-        # flag,offset = tables.getPointer(assigned)
-        # generator.writeLine(f"sw $a0, {offset}({flag})")
-        
+        flag,offset = tables.getPointer(assigned)
+        generator.writeLine(f"lw $a0, {offset}({flag})") #Load value of var to a0
     elif node.type == "program": #Start of the code
         for declaration in node: 
             generateCode(declaration,tables,generator)
