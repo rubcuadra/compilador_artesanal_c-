@@ -4,6 +4,8 @@ if __name__ == '__main__':
 	from globalTypes import *
 	from parser import *
 	from semantica import *
+	from cgen import codeGen
+	
 	f = open('examples/3.c-', 'r')
 	programa = f.read()
 	progLong = len(programa)
@@ -12,4 +14,5 @@ if __name__ == '__main__':
 	
 	globales(programa, posicion, progLong)
 	AST = parser(True)
-	semantica(AST, True)
+	semantica(AST, False)
+	codeGen(AST, 'program.exe')

@@ -2,7 +2,10 @@ from enum import Enum
 
 def error(node,msg):
     if node.token:raise Exception(f"ERROR LINE {node.token.lineno+1}, CHAR {node.token.lexpos+1} - {msg}")    
-    else:         raise Exception(f"ERROR : {msg}")
+    else:         
+        print(node)
+        raise Exception(f"ERROR : {msg}")
+
 
 class defTypes(Enum):
     ARR='array'
@@ -15,18 +18,54 @@ class ScopeTree():
         self.parent   = parent
         self.tag      = tag
         self.children = []
-        self.depth    = None if parent else 0
+        self.sp       = 0
+        self.gp       = 0
+        if parent == None: self.depth = 0
+        else:              self.depth = None
     
+    def getChildrenScope(self,tag): #Search between children
+        if self.tag == tag: return self
+        for ch in self.children:
+            if ch.getChildrenScope(tag)!=None: 
+                return ch
+
+    def define(self, symbol, wordSize):
+        if symbol in self.scope:
+            if self.parent == None: #GLOBAL, use $gp
+                self.scope[symbol][-1] = self.gp 
+                self.gp += wordSize
+                # print(symbol,' gp ',self.scope[symbol][-1])
+            else:                   #CURRENT, Use $sp
+                self.scope[symbol][-1] = self.sp 
+                self.sp += wordSize
+                # print(symbol,' sp ',self.scope[symbol][-1])
+        else: #Go Up
+            raise Exception("Not in this scope") #Redefinition of a var??
+
+    def getPointer(self,symbol):
+        if symbol in self.scope:
+            if self.parent == None: #GLOBAL, use $gp
+                offset = self.scope[symbol][-1] 
+                return ('$gp',self.gp-offset)
+            else:                   #CURRENT, Use $sp
+                offset = self.scope[symbol][-1] 
+                return ('$sp',self.sp-offset)
+        elif self.parent:     
+            return self.parent.getPointer(symbol)
+        else:                 
+            raise Exception(f"Undefined symbol {symbol}")
+        
+
     #dataType, strucType, value
-    def addSymbol(self, s): 
+    def addSymbol(self, s):  #Last pos in Arr,Var is for $sp and $gp flags
         #Check if it already exists before inserting?
         if s.value == "ARRAY":
-            self.scope[s.children[1].value] = (s.children[0].type,defTypes.ARR,s.children[3].value) 
+            self.scope[s.children[1].value] = [s.children[0].type,defTypes.ARR,s.children[3].value,None]
             # for i in range( ch.children[3].value ): st.addSymbol(f'{ch.children[1].value}_{i}',ch.children[0].type) 
         elif s.value == "VAR":
-            self.scope[s.children[1].value] = (s.children[0].type,defTypes.VAR,None) #Vars are initialized in None
+            self.scope[s.children[1].value] = [s.children[0].type,defTypes.VAR,None] #Vars are initialized in None
         elif s.value == "FUNCTION":
-            self.scope[s.children[1].value] = (s.children[0].type,defTypes.FUN,*s.children[2:-1]) #functions are initialized in None
+            self.scope[s.children[1].value] = [s.children[0].type,defTypes.FUN,*s.children[2:-1]] #functions are initialized in None
         else: 
             error(s,"Wrong declaration")
 
@@ -109,7 +148,9 @@ def validateCompoundStatements(statementBlock, _scope):
             if s!='void': error(statement,f"Called NON void function without assignment")
         elif statement.type == "return_stmt":  #Check returns exist
             s = _scope.getSymbol(_scope.tag) #SI es None es que we fucked up algo
-            if s[0] == 'void' and len(statement.children)>1: error(statement,"ERROR: void function returning values")
+            if s[0] == 'void' and len(statement.children)>1: 
+                if statement[1].type == "SEMI": continue
+                error(statement,"ERROR: void function returning values")
             t = getType(statement[1],_scope)
             if s[0] == t: continue
             error(statement,f"Wrong return type {s[0]} != {t}")
@@ -143,6 +184,8 @@ def getType(parseNode,scopeNode):
         else: error(parseNode,f"undefined variable {parseNode.children[0].value}")
     elif parseNode.type == "INTEGER":  
         return 'int' 
+    elif parseNode.type == "SEMI":
+        return 'void'
     else: #Opps
         if parseNode.type == 'addop':
             lt = getType(parseNode.children[0],scopeNode)
