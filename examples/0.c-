@@ -1,5 +1,5 @@
 int example;
-int other;
+int other[5];
 int third;
 
 /*int function(int a)
@@ -14,12 +14,13 @@ void main(void)
 
   x = 2;
   y = 3;
-  other = 4;
+  other[0] = 4;
   third = 5;
+  other[4] = 6;
   /*y = function(x);*/
+  output(other[4]);
   output(third);
-  output(other);
-  output(y);
+  output(other[0]);
   output(x);
 }
 

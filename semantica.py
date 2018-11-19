@@ -55,7 +55,7 @@ class ScopeTree():
                 offset = self.scope[symbol][-1] 
                 return self.sp-offset
         elif self.parent != None: #It is a global variable(or maybe just upper scope)
-            return self.parent.getPointer(symbol)
+            return self.parent.getOffset(symbol)
         else:                 
             raise Exception(f"Undefined symbol {symbol}")
         
@@ -74,6 +74,7 @@ class ScopeTree():
             error(s,"Wrong declaration")
 
     def getSymbol(self,var): 
+        # for k in self.scope: print(k)
         if var in self.scope: return self.scope[var]
         elif self.parent:     return self.parent.getSymbol(var)
         else:                 return None

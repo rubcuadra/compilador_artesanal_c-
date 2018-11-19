@@ -72,20 +72,34 @@ def generateCode(node, tables, generator):
             TODO: IF structure
         '''
     elif node.type == 'EQUALS':
-        assigned = node[0].value
+        left     = node[0]
         right    = node[1]
         
         generateCode(right,tables,generator)
         '''
             TODO: CHECAR ARREGLOS
         '''
-        #Save whatever is in $a0 in the variable
-        if tables.isGlobal(assigned):
-            generator.writeLine(f"la $a1, {assigned}") #get address of global var
-            generator.writeLine(f"sw $a0 0($a1)")          #save $a0 value in $a1
+        if left.type == "ARRAY_POS":
+            arrName = left[0].value
+            ix      = left[2].value
+            if tables.isGlobal(arrName):
+                generator.writeLine(f"la $a1, {arrName}{ix}") #Get address 
+                generator.writeLine(f"sw $a0 0($a1)")      
+            else:
+                print("MISSING TO IMPLEMNT ACCESS TO LOCAL ARRAYS")
+                print(left)
+        elif left.type == 'ID':
+            assigned = left.value
+            #Save whatever is in $a0 in the variable
+            if tables.isGlobal(assigned):
+                generator.writeLine(f"la $a1, {assigned}") #get address of global var
+                generator.writeLine(f"sw $a0 0($a1)")      #save $a0 value in $a1
+            else:
+                spOffset = tables.getOffset(assigned)
+                generator.writeLine(f"sw $a0, {spOffset}($sp)")
         else:
-            spOffset = tables.getOffset(assigned)
-            generator.writeLine(f"sw $a0, {spOffset}($sp)")
+            raise Exception("Unkown type on left side of equals")
+        
     elif node.type == 'mulop':
         l  = node[0]
         r  = node[1]
@@ -118,12 +132,15 @@ def generateCode(node, tables, generator):
             '''
     elif node.type == "INTEGER":
         generator.writeLine(f"li $a0, {node.value}")   #Load to a0
+    elif node.type == "ARRAY_POS": #Access to array by index
+        arrName = node[0].value
+        ix      = node[2].value
+        if tables.isGlobal(arrName):
+            generator.writeLine(f"lw $a0, {arrName}{ix}")
+        else:
+            print("MISSING TO IMPLEMNT READ TO LOCAL ARRAYS")
     elif node.type == "ID":
         varName = node.value
-        '''
-            TODO: CHECAR ARREGLOS
-        '''
-        print(node.type)
         if tables.isGlobal(varName): 
             generator.writeLine(f"lw $a0, {varName}")
         else:
@@ -150,18 +167,21 @@ def generateCode(node, tables, generator):
         generator.writeLine(f"")
         generator.writeLine(f".data")
         for declaration in node: 
+            varName = declaration[1].value
             if declaration.value != 'FUNCTION': 
                 if declaration.value == 'VAR':
-                    generator.writeLine(f"{declaration[1].value}:\t.word 0", tab=False) #Init in 0
-                elif declaration.value == 'ARR':
-                    print("DECLARE\n", declaration)
+                    generator.writeLine(f"{varName}:\t.word 0", tab=False) #Init in 0
+                elif declaration.value == 'ARRAY':
+                    arrSize = declaration[3].value
+                    for i in range(arrSize):
+                        generator.writeLine(f"{varName}{i}:\t.word 0", tab=False) #Init in 0
                 else:
                     raise Exception("Unkown global declaration")
     else:    
         raise Exception(f"Missing to define type: {node.type} val: {node.value}")
         
 def codeGen(tree, filePath):
-    st = tabla(tree, False)
+    st = tabla(tree, False)    
     with CodeGenerator(filePath) as cg:
         generateCode(tree,st,cg)
 
