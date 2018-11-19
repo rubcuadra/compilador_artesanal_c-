@@ -39,7 +39,7 @@ def generateCode(node, tables, generator):
             '''
                 TODO: Function Declaration
             '''
-            if defName != 'main': generator.writeLine(f"{defName}:", tab=False)
+            generator.writeLine(f"{defName}:", tab=False)
             for statementNode in codeBlock:
                 generateCode(statementNode, tables.getChildrenScope(defName), generator) 
 
@@ -47,15 +47,12 @@ def generateCode(node, tables, generator):
             varType = node[0].type
             varName = node[1].value
             '''
-                TODO: VAR Declaration **TESTING
+                TODO: CHECAR ARREGLOS
             '''
             tables.define(varName,WORD_SIZE) #Save offset for that var
-            if tables.tag == 'program': #Global
-                generator.writeLine('li $gp 0')                     #Init in 0   
-                generator.writeLine(f'addi $gp, $gp -{WORD_SIZE}')  #Move Flag
-            else:
-                generator.writeLine('li $sp 0')                     #Init in 0   
-                generator.writeLine(f'addi $sp, $sp -{WORD_SIZE}')  #Move Flag
+            generator.writeLine('li $s0 0')                    #Copy init to s0   
+            generator.writeLine('sw $s0,0($sp)')               #Save s0
+            generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}')  #Move Flag
 
         elif node.value == 'ARRAY':
             arrType = node[0].type
@@ -80,12 +77,15 @@ def generateCode(node, tables, generator):
         
         generateCode(right,tables,generator)
         '''
-            TODO: ASSIGN ACCUM VALUE TO REGISTER **TEST
+            TODO: CHECAR ARREGLOS
         '''
-        #Result is in $a0, save it in offset(flag)
-        flag,offset = tables.getPointer(assigned)
-        generator.writeLine(f"sw $a0, {offset}({flag})")
-        
+        #Save whatever is in $a0 in the variable
+        if tables.isGlobal(assigned):
+            generator.writeLine(f"la $a1, {assigned}") #get address of global var
+            generator.writeLine(f"sw $a0 0($a1)")          #save $a0 value in $a1
+        else:
+            spOffset = tables.getOffset(assigned)
+            generator.writeLine(f"sw $a0, {spOffset}($sp)")
     elif node.type == 'mulop':
         l  = node[0]
         r  = node[1]
@@ -118,34 +118,45 @@ def generateCode(node, tables, generator):
             '''
     elif node.type == "INTEGER":
         generator.writeLine(f"li $a0, {node.value}")   #Load to a0
+    elif node.type == "ID":
+        varName = node.value
+        '''
+            TODO: CHECAR ARREGLOS
+        '''
+        print(node.type)
+        if tables.isGlobal(varName): 
+            generator.writeLine(f"lw $a0, {varName}")
+        else:
+            spOffset = tables.getOffset(varName)
+            generator.writeLine(f"lw $a0, {spOffset}($sp)")
     elif node.type == "return_stmt":
         expr = node[1] #Check if it is a SEMI or something else (SEMI->void)
         '''
             TODO: Return value is stored in $v0, finish with: jr $ra
         '''
-    elif node.type == "ID":
-        varName = node.value
-        '''
-            TODO: Get value of var called *varName* **TEST
-        '''
-        flag,offset = tables.getPointer(varName)
-        generator.writeLine(f"lw $a0, {offset}({flag})") #Load value of var to a0
     elif node.type == "program": #Start of the code
         #Trick for main structure
-        generator.writeLine(f"main:", tab=False)
-        #Declare global vars or arrays at the start of main
+        generator.writeLine(f".text")
+        generator.writeLine(f".globl main")
+        
+        #Declare Functions
+        for declaration in node: 
+            if declaration.value == 'FUNCTION':
+                generateCode(declaration,tables,generator) 
+                if declaration[1].value == 'main':
+                    exit(generator)
+
+        #Declare global variables/arrays
+        generator.writeLine(f"")
+        generator.writeLine(f".data")
         for declaration in node: 
             if declaration.value != 'FUNCTION': 
-                generateCode(declaration,tables,generator) 
-        #Declare main structure
-        for declaration in node: 
-            if declaration.value == 'FUNCTION' and declaration[1].value == 'main':
-                generateCode(declaration,tables.getChildrenScope('main'),generator) 
-                exit(generator)
-        #Declare the other functions
-        for declaration in node: 
-            if declaration.value == 'FUNCTION' and declaration[1].value != 'main':
-                generateCode(declaration,tables.getChildrenScope('main'),generator) 
+                if declaration.value == 'VAR':
+                    generator.writeLine(f"{declaration[1].value}:\t.word 0", tab=False) #Init in 0
+                elif declaration.value == 'ARR':
+                    print("DECLARE\n", declaration)
+                else:
+                    raise Exception("Unkown global declaration")
     else:    
         raise Exception(f"Missing to define type: {node.type} val: {node.value}")
         

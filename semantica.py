@@ -19,7 +19,6 @@ class ScopeTree():
         self.tag      = tag
         self.children = []
         self.sp       = 0
-        self.gp       = 0
         if parent == None: self.depth = 0
         else:              self.depth = None
     
@@ -32,8 +31,9 @@ class ScopeTree():
     def define(self, symbol, wordSize):
         if symbol in self.scope:
             if self.parent == None: #GLOBAL, use $gp
-                self.scope[symbol][-1] = self.gp 
-                self.gp += wordSize
+                raise Exception("Modified globals logic")
+                # self.scope[symbol][-1] = self.gp 
+                # self.gp += wordSize
                 # print(symbol,' gp ',self.scope[symbol][-1])
             else:                   #CURRENT, Use $sp
                 self.scope[symbol][-1] = self.sp 
@@ -42,15 +42,19 @@ class ScopeTree():
         else: #Go Up
             raise Exception("Not in this scope") #Redefinition of a var??
 
-    def getPointer(self,symbol):
+    def isGlobal(self,symbol):
+        if symbol in self.scope and self.parent == None: return True
+        elif self.parent != None: return self.parent.isGlobal(symbol)
+        return False
+
+    def getOffset(self,symbol):
         if symbol in self.scope:
-            if self.parent == None: #GLOBAL, use $gp
+            if self.parent == None: 
+                raise Exception("Shouldn't be here, globals have different logic")
+            else: #CURRENT, Use $sp
                 offset = self.scope[symbol][-1] 
-                return ('$gp',self.gp-offset)
-            else:                   #CURRENT, Use $sp
-                offset = self.scope[symbol][-1] 
-                return ('$sp',self.sp-offset)
-        elif self.parent:     
+                return self.sp-offset
+        elif self.parent != None: #It is a global variable(or maybe just upper scope)
             return self.parent.getPointer(symbol)
         else:                 
             raise Exception(f"Undefined symbol {symbol}")
