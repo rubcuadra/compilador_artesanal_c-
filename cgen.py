@@ -52,10 +52,10 @@ def generateCode(node, tables, generator):
             tables.define(varName,WORD_SIZE) #Save offset for that var
             if tables.tag == 'program': #Global
                 generator.writeLine('li $gp 0')                     #Init in 0   
-                generator.writeLine(f'addiu $gp $gp -{WORD_SIZE}')  #Move Flag
+                generator.writeLine(f'addi $gp, $gp -{WORD_SIZE}')  #Move Flag
             else:
                 generator.writeLine('li $sp 0')                     #Init in 0   
-                generator.writeLine(f'addiu $sp $sp -{WORD_SIZE}')  #Move Flag
+                generator.writeLine(f'addi $sp, $sp -{WORD_SIZE}')  #Move Flag
 
         elif node.value == 'ARRAY':
             arrType = node[0].type

@@ -1,14 +1,14 @@
 main:
 	li $gp 0
-	addiu $gp $gp -4
+	addi $gp, $gp -4
 	li $gp 0
-	addiu $gp $gp -4
+	addi $gp, $gp -4
 	li $gp 0
-	addiu $gp $gp -4
+	addi $gp, $gp -4
 	li $sp 0
-	addiu $sp $sp -4
+	addi $sp, $sp -4
 	li $sp 0
-	addiu $sp $sp -4
+	addi $sp, $sp -4
 	li $a0, 2
 	sw $a0, 8($sp)
 	li $a0, 3
