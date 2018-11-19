@@ -10,15 +10,19 @@ void main(void)
 {
   int x;  int y; int other[5];
   x = 2;
-  y = 3;
-  other[0] = 4;
-  third = 5;
-  other[4] = 6;
+  y = 7;
+  other[0] = 0;
+  other[1] = 1;
+  other[2] = 2;
+  other[3] = 3;
+  other[4] = 4;
   /*y = function(x);*/
   output(other[4]);
-  output(third);
+  output(other[3]);
+  output(other[2]);
+  output(other[1]);
   output(other[0]);
-  output(x);
+  output(y);
 }
 
 /*

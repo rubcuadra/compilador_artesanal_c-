@@ -46,9 +46,7 @@ def generateCode(node, tables, generator):
         elif node.value == 'VAR':
             varType = node[0].type
             varName = node[1].value
-            '''
-                TODO: CHECAR ARREGLOS
-            '''
+            
             tables.define(varName,WORD_SIZE) #Save offset for that var
             generator.writeLine('li $s0 0')                    #Copy init to s0   
             generator.writeLine('sw $s0,0($sp)')               #Save s0
@@ -58,9 +56,7 @@ def generateCode(node, tables, generator):
             arrType = node[0].type
             arrName = node[1].value
             arrSize = node[3].value
-            '''
-                TODO: ARR Declaration
-            '''
+            
             tables.define(arrName,WORD_SIZE*arrSize) #Save offset for that array
             for i in range(arrSize):
                 generator.writeLine('li $s0 0')                    #Copy init to s0   
@@ -80,10 +76,8 @@ def generateCode(node, tables, generator):
         left     = node[0]
         right    = node[1]
         
-        generateCode(right,tables,generator)
-        '''
-            TODO: CHECAR ARREGLOS
-        '''
+        generateCode(right,tables,generator) #Puts right result to a0
+
         if left.type == "ARRAY_POS":
             arrName = left[0].value
             ix      = left[2].value
@@ -144,7 +138,7 @@ def generateCode(node, tables, generator):
             generator.writeLine(f"lw $a0, {arrName}{ix}")
         else:
             spOffset = tables.getOffset(arrName)
-            generator.writeLine(f"sw $a0, {spOffset-ix*WORD_SIZE}($sp)")            
+            generator.writeLine(f"lw $a0, {spOffset-ix*WORD_SIZE}($sp)")            
     elif node.type == "ID":
         varName = node.value
         if tables.isGlobal(varName): 
