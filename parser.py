@@ -339,7 +339,7 @@ def p_factor(node_type="factor"):
     if match("LPAREN"):          #( expression )
         e = p_expression(deb=True)
         if match("RPAREN"):
-            if e: return Node(node_type,[e],token=token)
+            if e: return e #Node(node_type,[e],token=token)
             p_error()
         p_error()    
     else:
@@ -351,7 +351,7 @@ def p_factor(node_type="factor"):
             if match("LBRACK"):  #ID [ expression ]
                 e = p_expression()
                 if match( "RBRACK" ): 
-                    return Node(node_type,[decName,Node("LBRACK"),e,Node("RBRACK")],token=token)
+                    return Node("ARRAY_POS",[decName,Node("LBRACK"),e,Node("RBRACK")],token=token)
             
             elif match("LPAREN"): #CALL function
                 args = p_args()
