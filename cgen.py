@@ -25,6 +25,10 @@ class CodeGenerator(object):
         self.f.write(text)
         if breakLine: self.f.write("\n")
 
+def exit(generator):
+    generator.writeLine("li $v0, 10") #Exit call
+    generator.writeLine("syscall")
+
 def generateCode(node, tables, generator):
     if node.type == 'declaration':
         if node.value == 'FUNCTION':      #Declare Params
@@ -35,7 +39,7 @@ def generateCode(node, tables, generator):
             '''
                 TODO: Function Declaration
             '''
-            generator.writeLine(f"{defName}:", tab=False)
+            if defName != 'main': generator.writeLine(f"{defName}:", tab=False)
             for statementNode in codeBlock:
                 generateCode(statementNode, tables.getChildrenScope(defName), generator) 
 
@@ -124,11 +128,24 @@ def generateCode(node, tables, generator):
         '''
             TODO: Get value of var called *varName* **TEST
         '''
-        flag,offset = tables.getPointer(assigned)
+        flag,offset = tables.getPointer(varName)
         generator.writeLine(f"lw $a0, {offset}({flag})") #Load value of var to a0
     elif node.type == "program": #Start of the code
+        #Trick for main structure
+        generator.writeLine(f"main:", tab=False)
+        #Declare global vars or arrays at the start of main
         for declaration in node: 
-            generateCode(declaration,tables,generator)
+            if declaration.value != 'FUNCTION': 
+                generateCode(declaration,tables,generator) 
+        #Declare main structure
+        for declaration in node: 
+            if declaration.value == 'FUNCTION' and declaration[1].value == 'main':
+                generateCode(declaration,tables.getChildrenScope('main'),generator) 
+                exit(generator)
+        #Declare the other functions
+        for declaration in node: 
+            if declaration.value == 'FUNCTION' and declaration[1].value != 'main':
+                generateCode(declaration,tables.getChildrenScope('main'),generator) 
     else:    
         raise Exception(f"Missing to define type: {node.type} val: {node.value}")
         

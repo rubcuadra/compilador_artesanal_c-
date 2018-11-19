@@ -2,18 +2,21 @@ int example;
 int other;
 int third;
 
-int function(int a)
+/*int function(int a)
 {
   return 3*a+5;
-}
+}*/
 
 void main(void)
 {
-  int x; int y;
-  x = 5;
-  example = 3;
-  third = 2;
-  y = function(x);
+  int x; 
+  int y;
+
+  x = 2;
+  y = 3;
+  other = 4;
+  third = 5;
+  /*y = function(x);*/
   output(y);
 }
 
