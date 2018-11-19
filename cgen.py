@@ -61,6 +61,11 @@ def generateCode(node, tables, generator):
             '''
                 TODO: ARR Declaration
             '''
+            tables.define(arrName,WORD_SIZE*arrSize) #Save offset for that array
+            for i in range(arrSize):
+                generator.writeLine('li $s0 0')                    #Copy init to s0   
+                generator.writeLine('sw $s0,0($sp)')               #Save s0
+                generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}')  #Move Flag            
         else:    
             raise Exception(f"unkown declaration {node.type} {node.value}")
     elif node.type == 'if':
@@ -86,8 +91,8 @@ def generateCode(node, tables, generator):
                 generator.writeLine(f"la $a1, {arrName}{ix}") #Get address 
                 generator.writeLine(f"sw $a0 0($a1)")      
             else:
-                print("MISSING TO IMPLEMNT ACCESS TO LOCAL ARRAYS")
-                print(left)
+                spOffset = tables.getOffset(arrName)
+                generator.writeLine(f"sw $a0, {spOffset-ix*WORD_SIZE}($sp)")
         elif left.type == 'ID':
             assigned = left.value
             #Save whatever is in $a0 in the variable
@@ -138,7 +143,8 @@ def generateCode(node, tables, generator):
         if tables.isGlobal(arrName):
             generator.writeLine(f"lw $a0, {arrName}{ix}")
         else:
-            print("MISSING TO IMPLEMNT READ TO LOCAL ARRAYS")
+            spOffset = tables.getOffset(arrName)
+            generator.writeLine(f"sw $a0, {spOffset-ix*WORD_SIZE}($sp)")            
     elif node.type == "ID":
         varName = node.value
         if tables.isGlobal(varName): 

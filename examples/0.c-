@@ -1,5 +1,4 @@
 int example;
-int other[5];
 int third;
 
 /*int function(int a)
@@ -9,9 +8,7 @@ int third;
 
 void main(void)
 {
-  int x; 
-  int y;
-
+  int x;  int y; int other[5];
   x = 2;
   y = 3;
   other[0] = 4;
