@@ -1,6 +1,3 @@
-int example;
-int third;
-
 /*int function(int a)
 {
   return 3*a+5;
@@ -8,20 +5,10 @@ int third;
 
 void main(void)
 {
-  int x;  int y; int other[5];
+  int x;  int y; 
   x = 2;
-  y = 7;
-  other[0] = 0;
-  other[1] = 1;
-  other[2] = 2;
-  other[3] = 3;
-  other[4] = 4;
+  y = 6+1;
   /*y = function(x);*/
-  output(other[4]);
-  output(other[3]);
-  output(other[2]);
-  output(other[1]);
-  output(other[0]);
   output(y);
 }
 

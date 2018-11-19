@@ -106,6 +106,7 @@ def generateCode(node, tables, generator):
         '''
             TODO: MULTI / DIV
         '''
+        print("DO Multi Div")
     elif node.type == 'addop':
         l = node[0]
         r = node[1]
@@ -113,6 +114,7 @@ def generateCode(node, tables, generator):
         '''
             TODO: SUMA / RESTA
         '''
+        print("DO Suma Resta")
     elif node.type == 'CALL':
         defName    = node[0].value
         callParams = node[1:] #Can Be []
