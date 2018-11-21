@@ -240,6 +240,15 @@ def generateCode(node, tables, generator):
                 generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
                 generator.writeLine( "mflo $a0")              #Pop Lo
                 spOffset = tables.getOffset(arrName)
+                
+                if tables.tag != 'main': #Array inside a function,check if it is a param
+                     for param in tables.getSymbol(tables.tag)[2:]:
+                        if param[1].value == arrName: #It is an array sent as param
+                            generator.writeLine(f"lw $t1, {spOffset}($sp)") #t1 has the address to the array
+                            generator.writeLine(f"sub $t1 $t1 $a0")         #t1 has the address to the arr[ix]
+                            generator.writeLine(f"sw $t5, 0($t1)")          #Write it
+                            return       
+
                 generator.writeLine(f"li $t2, {spOffset}")    #Prepare for sub
                 generator.writeLine(f"sub $t1 $t2 $a0")       #Adjust index
                 #Store    

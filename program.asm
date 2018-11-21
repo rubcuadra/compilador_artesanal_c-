@@ -1,16 +1,15 @@
 	.text
 	.globl main
-sumar:
-	li $a0, 1
+update:
+	lw $a0, 4($sp)
+	move $t5, $a0
+	lw $a0, 8($sp)
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
-	lw $t1, 8($sp)
+	lw $t1, 12($sp)
 	sub $t1 $t1 $a0
-	lw $a0, 0($t1)
-	li $v0, 1
-	syscall
-	li $a0, 1
+	sw $t5, 0($t1)
 	addi $sp,$sp,0
 	jr $ra
 main:
@@ -26,17 +25,6 @@ main:
 	li $s0 0
 	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $a0, 5
-	move $t5, $a0
-	li $a0, 1
-	li $t1, 4
-	mult $a0, $t1
-	mflo $a0
-	li $t2, 12
-	sub $t1 $t2 $a0
-	add $sp,$sp,$t1
-	sw $t5, 0($sp)
-	sub $sp,$sp,$t1
 	li $t1, 12
 	add $sp,$sp,$t1
 	move $a0, $sp
@@ -44,14 +32,28 @@ main:
 	addi $sp,$sp,-0
 	sw $a0,0($sp)
 	addi $sp,$sp, 0
-	li $a0, 1
+	li $a0, 2
 	addi $sp,$sp,-4
 	sw $a0,0($sp)
 	addi $sp,$sp, 4
+	li $a0, 10
 	addi $sp,$sp,-8
-	jal sumar
-	addi $sp,$sp,8
-	sw $a0, 16($sp)
+	sw $a0,0($sp)
+	addi $sp,$sp, 8
+	addi $sp,$sp,-12
+	jal update
+	addi $sp,$sp,12
+	li $a0, 2
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	li $t2, 12
+	sub $t1 $t2 $a0
+	add $sp,$sp,$t1
+	lw $a0, 0($sp)
+	sub $sp,$sp,$t1
+	li $v0, 1
+	syscall
 	li $v0, 10
 	syscall
 	
