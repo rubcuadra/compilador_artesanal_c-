@@ -19,6 +19,11 @@ class CodeGenerator(object):
 
     def closeFile(self):
         self.f.close()
+    
+    def comment(self,text):
+        self.f.write("#")
+        self.f.write(text.replace("\n","\n#"))
+        self.f.write("\n")
 
     def writeLine(self, text, breakLine=True, tab=True):
         if tab: self.f.write("\t")
@@ -109,31 +114,31 @@ def generateCode(node, tables, generator):
             generator.writeLine("li $v0, 1")     #Will Print
             generator.writeLine("syscall")       #Print the value of $a0
         else:
-            '''
-                TODO: TEST
-            '''
+            generator.comment(f"CALLING {defName}")
             defScope = tables.getGlobalScope().getChildrenScope(defName)
             s = tables.getSymbol(defName) #Knowing params of the function
             #Save
             #Prepare params that will be sent
+            
+            current_offset = 0
             for passedVar,paramInDef in zip(callParams,s[2:]) : #Define params for the call 
                 #Load to a0 the value that will be sent
-                generateCode(passedVar, tables, generator) #CHECAR ESTO
+                generateCode(passedVar, tables, generator)
+                
                 #Save that for passing as params
-                paramInDef = paramInDef[1].value
-                # defScope.define(paramInDef,WORD_SIZE) #Define for function 
-                spOffset = defScope.getOffset(paramInDef)
-                generator.writeLine(f"lw $a0, {spOffset}($sp)")
-                generator.writeLine('sw $a0,0($sp)')               #Save s0
-                generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}')  #Move Flag
+                generator.writeLine(f'addi $sp,$sp,-{current_offset}')#Move Flag to nextFree
+                generator.writeLine('sw $a0,0($sp)')                  #Save that Param
+                generator.writeLine(f'addi $sp,$sp, {current_offset}')   #Return Flag
+                current_offset += WORD_SIZE
+            
+            generator.writeLine(f'addi $sp,$sp,-{current_offset}') #Move Flag to nextFree
 
             #Call the function
             generator.writeLine(f'jal {defName}')  # Save current PC in $ra, and jump to function
             
             #IF def returned something it will be in a0
-            for passedVar in callParams: #Return sp to the position before declaring params
-                generator.writeLine(f'addi $sp,$sp,{WORD_SIZE}')
-
+            generator.writeLine(f'addi $sp,$sp,{current_offset}') #Return to the position before setting params
+            generator.comment(f"FINISHED CALLING {defName}")
     elif node.type == "return_stmt":
         '''
             TODO: Return value is stored in $v0, finish with: jr $ra
@@ -181,6 +186,7 @@ def generateCode(node, tables, generator):
         generateCode(l,tables,generator)    #Puts result in a0
         generator.writeLine("sw $a0 0($sp)")#Save record
         generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
+        tables.setSP( tables.sp + WORD_SIZE )
         generateCode(r,tables,generator)    #Puts result in a0
         generator.writeLine("lw $t1 4($sp)")#Load saved record to t1
         #Put result t1*a0 in a0 || Put result t1/a0 in a0 
@@ -190,6 +196,7 @@ def generateCode(node, tables, generator):
         else:                   
             generator.writeLine("div $t1, $a0")  #Result goes to HI and LO
             generator.writeLine("mflo $a0")      #we will only use Quotient (LO)
+        tables.setSP( tables.sp - WORD_SIZE )
         generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
     elif node.type == 'addop':
         l = node[0]
@@ -198,11 +205,13 @@ def generateCode(node, tables, generator):
         generateCode(l,tables,generator)    #Puts result in a0
         generator.writeLine("sw $a0 0($sp)")#Save record
         generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
+        tables.setSP( tables.sp + WORD_SIZE )
         generateCode(r,tables,generator)    #Puts result in a0
         generator.writeLine("lw $t1 4($sp)")#Load saved record to t1
         #Put result t1-a0 in a0 || Put result t1+a0 in a0 
         if node.value=='PLUS': generator.writeLine("add $a0 $t1 $a0") 
-        else:                  generator.writeLine("sub $a0 $t1 $a0") 
+        else:                  generator.writeLine("sub $a0 $t1 $a0")
+        tables.setSP( tables.sp - WORD_SIZE ) 
         generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
     elif node.type == "INTEGER":
         generator.writeLine(f"li $a0, {node.value}")   #Load to a0
