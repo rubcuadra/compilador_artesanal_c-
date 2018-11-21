@@ -94,7 +94,7 @@ def generateCode(node, tables, generator):
         tables.setSP( tables.sp + WORD_SIZE )
         #RIGHT
         generateCode(condition[1], tables, generator) #Right in a0
-        generator.writeLine("lw $t1 4($sp)")          #Left  in t1
+        generator.writeLine(f"lw $t1 {WORD_SIZE}($sp)")          #Left  in t1
         tables.setSP( tables.sp - WORD_SIZE ) 
         generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
         
@@ -139,7 +139,7 @@ def generateCode(node, tables, generator):
         tables.setSP( tables.sp + WORD_SIZE )
         #RIGHT
         generateCode(condition[1], tables, generator) #Right in a0
-        generator.writeLine("lw $t1 4($sp)")          #Left  in t1
+        generator.writeLine(f"lw $t1 {WORD_SIZE}($sp)")          #Left  in t1
         tables.setSP( tables.sp - WORD_SIZE ) 
         generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
         #t1 RELOP a0
@@ -220,15 +220,17 @@ def generateCode(node, tables, generator):
                 generator.writeLine(f"sw $t3, 0($a1)")        #save to $a0
             else:
                 generateCode(left[2],tables,generator)        #a0 will have the index
-                generator.writeLine(f"mult $a0, {WORD_SIZE}") #Result goes to HI and LO
+                generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
+                generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
                 generator.writeLine( "mflo $a0")              #Pop Lo
                 spOffset = tables.getOffset(arrName)
-                generator.writeLine(f"sub $a0 {spOffset} $a0")#Adjust index
-                '''
-                    TODO
-                '''
-                generator.writeLine(f"sw $t3, $a0($sp)")      #save to $a0
-
+                generator.writeLine(f"li $t2, {spOffset}")    #Prepare for sub
+                generator.writeLine(f"sub $t1 $t2 $a0")       #Adjust index
+                #Store    
+                generator.writeLine(f'add $sp,$sp,$t1')       #Go to offset
+                generator.writeLine(f"sw $t3, 0($sp)")        #Read
+                generator.writeLine(f'sub $sp,$sp,$t1')       #Return
+            
         elif left.type == 'ID':
             assigned = left.value
             #Save whatever is in $a0 in the variable
@@ -250,7 +252,7 @@ def generateCode(node, tables, generator):
         generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
         tables.setSP( tables.sp + WORD_SIZE )
         generateCode(r,tables,generator)    #Puts result in a0
-        generator.writeLine("lw $t1 4($sp)")#Load saved record to t1
+        generator.writeLine(f"lw $t1 {WORD_SIZE}($sp)")#Load saved record to t1
         #Put result t1*a0 in a0 || Put result t1/a0 in a0 
         if node.value=='TIMES': 
             generator.writeLine("mult $t1, $a0") #Result goes to HI and LO
@@ -269,7 +271,7 @@ def generateCode(node, tables, generator):
         generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
         tables.setSP( tables.sp + WORD_SIZE )
         generateCode(r,tables,generator)    #Puts result in a0
-        generator.writeLine("lw $t1 4($sp)")#Load saved record to t1
+        generator.writeLine(f"lw $t1 {WORD_SIZE}($sp)")#Load saved record to t1
         #Put result t1-a0 in a0 || Put result t1+a0 in a0 
         if node.value=='PLUS': generator.writeLine("add $a0 $t1 $a0") 
         else:                  generator.writeLine("sub $a0 $t1 $a0")
@@ -288,16 +290,17 @@ def generateCode(node, tables, generator):
             generator.writeLine( "add $a1, $a1, $a0")     #a1 = Address of array + a0
             generator.writeLine(f"lw $a0, 0($a1)")        #load to $a0
         else:
-            '''
-                TODO
-            '''
             generateCode(node[2],tables,generator)        #a0 will have the index
-            generator.writeLine(f"mult $a0, {WORD_SIZE}") #Result goes to HI and LO
+            generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
+            generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
             generator.writeLine( "mflo $a0")              #Pop Lo
             spOffset = tables.getOffset(arrName)
-            generator.writeLine(f"sub $a0 {spOffset} $a0")#Adjust index
-            # ix      = node[2].value
-            # generator.writeLine(f"lw $a0, {spOffset-ix*WORD_SIZE}($sp)")            
+            generator.writeLine(f"li $t2, {spOffset}")   #Prepare for sub
+            generator.writeLine(f"sub $t1 $t2 $a0")     #Adjust index
+            generator.writeLine(f'add $sp,$sp,$t1')       #Go to offset
+            generator.writeLine(f"lw $a0, 0($sp)")        #Read
+            generator.writeLine(f'sub $sp,$sp,$t1')       #Return
+
     elif node.type == "ID":
         varName = node.value
         if tables.isGlobal(varName): 

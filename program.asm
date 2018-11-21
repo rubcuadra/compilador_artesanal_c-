@@ -20,6 +20,21 @@ main:
 	li $s0 0
 	sw $s0,0($sp)
 	addi $sp,$sp,-4
+	li $s0 0
+	sw $s0,0($sp)
+	addi $sp,$sp,-4
+	li $s0 0
+	sw $s0,0($sp)
+	addi $sp,$sp,-4
+	li $s0 0
+	sw $s0,0($sp)
+	addi $sp,$sp,-4
+	li $s0 0
+	sw $s0,0($sp)
+	addi $sp,$sp,-4
+	li $s0 0
+	sw $s0,0($sp)
+	addi $sp,$sp,-4
 	li $a0, 0
 	sw $a0, 8($sp)
 stwhile1:
@@ -50,19 +65,26 @@ ifwhile1:
 	addi $sp,$sp,4
 	move $t3, $a0
 	lw $a0, 8($sp)
-	la $a1, k
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
-	add $a1, $a1, $a0
-	sw $t3, 0($a1)
+	li $t2, 28
+	sub $t1 $t2 $a0
+	add $sp,$sp,$t1
+	sw $t3, 0($sp)
+	sub $sp,$sp,$t1
 	lw $a0, 8($sp)
-	la $a1, k
+	li $v0, 1
+	syscall
+	lw $a0, 8($sp)
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
-	add $a1, $a1, $a0
-	lw $a0, 0($a1)
+	li $t2, 28
+	sub $t1 $t2 $a0
+	add $sp,$sp,$t1
+	lw $a0, 0($sp)
+	sub $sp,$sp,$t1
 	li $v0, 1
 	syscall
 	j stwhile1
@@ -71,4 +93,3 @@ endwhile1:
 	syscall
 	
 	.data
-k:	.word 0, 0, 0, 0, 0
