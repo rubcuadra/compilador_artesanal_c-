@@ -42,9 +42,7 @@ def generateCode(node, tables, generator):
             params    = node[2:-1]   
             codeBlock = node[-1]
             defScope = tables.getChildrenScope(defName)
-            '''
-                TODO: Function Declaration
-            '''
+            
             #Define params in that function
             if params[0].type != 'void':
                 for p in params:
@@ -140,9 +138,6 @@ def generateCode(node, tables, generator):
             generator.writeLine(f'addi $sp,$sp,{current_offset}') #Return to the position before setting params
             generator.comment(f"FINISHED CALLING {defName}")
     elif node.type == "return_stmt":
-        '''
-            TODO: Return value is stored in $v0, finish with: jr $ra
-        '''
         expr = node[1] #Check if it is a SEMI or something else (SEMI->void)
         generateCode(expr,tables,generator) #Put the return value in a0
         s  = tables.getSymbol(tables.tag)
