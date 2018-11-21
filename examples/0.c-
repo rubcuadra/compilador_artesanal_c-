@@ -1,21 +1,24 @@
-/*int function(int a)
-{
-  return 3*a+5;
-}*/
+void test( int a[], int low, int high)
+{   int i; int k;
+    i = low;
+}
 
 void main(void)
 {
   int x;  int y; 
   x = 2;
-  y = 6+1-(3*5);
+  y = 1;
 
   /*if(x < 3){ 
 		x = (x + 1);
 	}*/
 
-  /*y = function(x);*/
+  test(x,5,8);
+
   output(y);
 }
+
+
 
 /*
 

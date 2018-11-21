@@ -28,6 +28,14 @@ class ScopeTree():
             if ch.getChildrenScope(tag)!=None: 
                 return ch
 
+    #Reset pointer to params start (sp = lastParamoffset)
+    def setSP(self, newSP):
+        self.sp = newSP
+
+    def getGlobalScope(self):
+        if self.parent: return self.parent.getGlobalScope()
+        return self
+    
     def define(self, symbol, wordSize):
         if symbol in self.scope:
             if self.parent == None: #GLOBAL, use $gp

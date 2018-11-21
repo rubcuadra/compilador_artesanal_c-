@@ -36,12 +36,30 @@ def generateCode(node, tables, generator):
             defName   = node[1].value
             params    = node[2:-1]   
             codeBlock = node[-1]
+            defScope = tables.getChildrenScope(defName)
             '''
                 TODO: Function Declaration
             '''
+            #Define params in that function
+            if params[0].type != 'void':
+                for p in params:
+                    defScope.define(p[1].value,WORD_SIZE) #Define for function 
+
             generator.writeLine(f"{defName}:", tab=False)
             for statementNode in codeBlock:
-                generateCode(statementNode, tables.getChildrenScope(defName), generator) 
+                generateCode(statementNode, defScope, generator) 
+            
+            #Return pointer based on number of declarations
+            if retType == 'void' and defName != 'main': #Return at the end of a void, otherwise there must be a return
+                if params[0].type != 'void': #Reset after params
+                    lastParam = params[-1][1].value
+                    offset = defScope.getOffset(lastParam)
+                    newSP = offset-WORD_SIZE
+                else:
+                    newSP = 0
+                defScope.setSP( newSP ) #Last param offset + WordSize
+                generator.writeLine(f'addi $sp,$sp,{defScope.sp}') #Return flag before declarations in function
+                generator.writeLine(f'jr $ra')                     # Jump to addr stored in $ra
 
         elif node.value == 'VAR':
             varType = node[0].type
@@ -92,14 +110,43 @@ def generateCode(node, tables, generator):
             generator.writeLine("syscall")       #Print the value of $a0
         else:
             '''
-                TODO: CALL the already defined Function
-                Pasar params
+                TODO: TEST
             '''
+            defScope = tables.getGlobalScope().getChildrenScope(defName)
+            s = tables.getSymbol(defName) #Knowing params of the function
+            #Save
+            #Prepare params that will be sent
+            for passedVar,paramInDef in zip(callParams,s[2:]) : #Define params for the call 
+                #Load to a0 the value that will be sent
+                generateCode(passedVar, tables, generator) #CHECAR ESTO
+                #Save that for passing as params
+                paramInDef = paramInDef[1].value
+                # defScope.define(paramInDef,WORD_SIZE) #Define for function 
+                spOffset = defScope.getOffset(paramInDef)
+                generator.writeLine(f"lw $a0, {spOffset}($sp)")
+                generator.writeLine('sw $a0,0($sp)')               #Save s0
+                generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}')  #Move Flag
+
+            #Call the function
+            generator.writeLine(f'jal {defName}')  # Save current PC in $ra, and jump to function
+            
+            #IF def returned something it will be in a0
+            for passedVar in callParams: #Return sp to the position before declaring params
+                generator.writeLine(f'addi $sp,$sp,{WORD_SIZE}')
+
     elif node.type == "return_stmt":
-        expr = node[1] #Check if it is a SEMI or something else (SEMI->void)
         '''
             TODO: Return value is stored in $v0, finish with: jr $ra
         '''
+        expr = node[1] #Check if it is a SEMI or something else (SEMI->void)
+        generateCode(expr,tables,generator) #Put the return value in a0
+        s  = tables.getSymbol(tables.tag)
+        lastParam = s[-1][1].value
+        offset = tables.getOffset(lastParam)
+        newsp = offset-WORD_SIZE
+        tables.setSP( newsp ) #Last param offset + WordSize
+        generator.writeLine(f'addi $sp,$sp,{tables.sp}') #Return flag before declarations in function
+        generator.writeLine(f'jr $ra') # Jump to addr stored in $ra
     elif node.type == 'EQUALS':
         left     = node[0]
         right    = node[1]
