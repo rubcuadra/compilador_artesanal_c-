@@ -6,13 +6,13 @@ if __name__ == '__main__':
 	from semantica import *
 	from cgen import codeGen
 	
-	f = open('examples/3.c-', 'r')
+	f = open('examples/2.c-', 'r')
 	programa = f.read()
 	progLong = len(programa)
 	programa = programa + TokenType.ENDFILE.value
 	posicion = 0
 	
 	globales(programa, posicion, progLong)
-	AST = parser(True)
+	AST = parser(False)
 	semantica(AST, False)
-	codeGen(AST, 'program.exe')
+	codeGen(AST, 'program.asm')

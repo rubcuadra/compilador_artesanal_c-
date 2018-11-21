@@ -32,20 +32,14 @@ void sort( int a[], int low, int high)
         }   
 }
 
-int example( int j[], int l)
-{
-   return 3; 
-}
-
 void main(void)
 {   int i;
-    int p[10];
     i = 0;
     while (i < 10)
         { x[i] = input();
           i = i + 1; }
     sort(x,0,10);
-    i = example(p,i);
+    
     i = 0;
     while (i < 10)
         { output(x[i]);

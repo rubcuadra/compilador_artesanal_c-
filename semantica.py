@@ -183,7 +183,7 @@ def validateCompoundStatements(statementBlock, _scope):
             else:
                 if len(symb[2:]) != len(params): raise Exception(f"Calling function with different amount of params: {statement[0].value}")
                 for passed,param in zip(symb[2:],params):
-                    if passed[0].type == 'int' and param.type == 'INTEGER':
+                    if passed[0].type == getType(param,_scope):
                         continue
                     raise Exception("Calling function with different type of params")
 
