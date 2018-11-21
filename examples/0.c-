@@ -1,4 +1,4 @@
-
+int k[10];
 int sumar( int a, int b)
 {   
 	output(3);
@@ -7,12 +7,12 @@ int sumar( int a, int b)
 
 void main(void)
 {
-	int k[5];
 	int x; int y;
 	x = 0;
-	while(x<5){
- 	  x = x + 1;
- 	  k[x] = x*2;
+	while(x<10){
+ 	  k[x] = x+1;
+ 	  x = k[x];
 	}
-	
+	output(k[5]);
+
 }
