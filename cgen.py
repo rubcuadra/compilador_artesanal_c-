@@ -186,9 +186,19 @@ def generateCode(node, tables, generator):
             #Prepare params that will be sent
             current_offset = 0
             for passedVar,paramInDef in zip(callParams,s[2:]) : #Define params for the call 
-                #Load to a0 the value that will be sent
-                generateCode(passedVar, tables, generator)
-                #Save that for passing as params
+                if paramInDef.value == 'ARRAY': #Load to a0 the ADDRESS that will be sent
+                    arrName = passedVar.value
+                    if tables.isGlobal(arrName): #Load to a0 the address of the array
+                        generator.writeLine(f"la $a0, {arrName}")     #get address of global var
+                    else:
+                        spOffset = tables.getOffset(arrName)
+                        generator.writeLine(f"li $t1, {spOffset}")    #Prepare for sub
+                        generator.writeLine(f'add $sp,$sp,$t1')       #Go to offset
+                        generator.writeLine(f"move $a0, $sp")           #Save address
+                        generator.writeLine(f'sub $sp,$sp,$t1')       #Return flag            
+                else: #Var - Load to a0 the VALUE that will be sent
+                    generateCode(passedVar, tables, generator)
+                #Save a0 for passing as params
                 generator.writeLine(f'addi $sp,$sp,-{current_offset}')#Move Flag to nextFree
                 generator.writeLine('sw $a0,0($sp)')                  #Save that Param
                 generator.writeLine(f'addi $sp,$sp, {current_offset}')   #Return Flag
@@ -225,7 +235,7 @@ def generateCode(node, tables, generator):
                 generator.writeLine(f"la $a1, {arrName}")     #get address of global var
                 generator.writeLine(f"add $a1, $a1, $a0")     #a1 = Address of array + a0
                 generator.writeLine(f"sw $t5, 0($a1)")        #save to $a0
-            else:
+            else: #Local, check if it is a passed as param array?
                 generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
                 generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
                 generator.writeLine( "mflo $a0")              #Pop Lo
@@ -287,7 +297,6 @@ def generateCode(node, tables, generator):
     elif node.type == "ARRAY_POS": #Access to array by index
         arrName = node[0].value
         generateCode(node[2],tables,generator)        #a0 will have the index
-        
         if tables.isGlobal(arrName): 
             generator.writeLine(f"la $a1, {arrName}")     #get address of global var
             generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
@@ -298,10 +307,20 @@ def generateCode(node, tables, generator):
         else:
             generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
             generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
-            generator.writeLine( "mflo $a0")              #Pop Lo
+            generator.writeLine( "mflo $a0")              #Pop Lo, a0 will have the offset
             spOffset = tables.getOffset(arrName)
+
+            if tables.tag != 'main': #Array inside a function,check if it is a param
+                for param in tables.getSymbol(tables.tag)[2:]:
+                    if param[1].value == arrName: #It is an array sent as param
+                        generator.writeLine(f"lw $t1, {spOffset}($sp)") #t1 has the address to the array
+                        generator.writeLine(f"sub $t1 $t1 $a0")         #Adjust index
+                        generator.writeLine(f"lw $a0, 0($t1)")          #Read to a0
+                        return            
+            
             generator.writeLine(f"li $t2, {spOffset}")    #Prepare for sub
             generator.writeLine(f"sub $t1 $t2 $a0")       #Adjust index
+            #Read
             generator.writeLine(f'add $sp,$sp,$t1')       #Go to offset
             generator.writeLine(f"lw $a0, 0($sp)")        #Read
             generator.writeLine(f'sub $sp,$sp,$t1')       #Return            

@@ -1,16 +1,16 @@
 	.text
 	.globl main
 sumar:
-	li $a0, 3
+	li $a0, 1
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	lw $t1, 8($sp)
+	sub $t1 $t1 $a0
+	lw $a0, 0($t1)
 	li $v0, 1
 	syscall
-	lw $a0, 8($sp)
-	sw $a0 0($sp)
-	addi $sp,$sp,-4
-	lw $a0, 8($sp)
-	lw $t1 4($sp)
-	add $a0 $t1 $a0
-	addi $sp,$sp,4
+	li $a0, 1
 	addi $sp,$sp,0
 	jr $ra
 main:
@@ -20,52 +20,38 @@ main:
 	li $s0 0
 	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $a0, 0
-	sw $a0, 8($sp)
-stwhile1:
-	lw $a0, 8($sp)
-	sw $a0 0($sp)
+	li $s0 0
+	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $a0, 10
-	lw $t1 4($sp)
-	addi $sp,$sp,4
-	blt $t1, $a0, ifwhile1
-	j endwhile1
-ifwhile1:
-	lw $a0, 8($sp)
-	sw $a0 0($sp)
+	li $s0 0
+	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $a0, 1
-	lw $t1 4($sp)
-	add $a0 $t1 $a0
-	addi $sp,$sp,4
-	move $t5, $a0
-	lw $a0, 8($sp)
-	li $t1, 4
-	mult $a0, $t1
-	mflo $a0
-	la $a1, k
-	add $a1, $a1, $a0
-	sw $t5, 0($a1)
-	lw $a0, 8($sp)
-	la $a1, k
-	li $t1, 4
-	mult $a0, $t1
-	mflo $a0
-	add $a1, $a1, $a0
-	lw $a0, 0($a1)
-	sw $a0, 8($sp)
-	j stwhile1
-endwhile1:
 	li $a0, 5
-	la $a1, k
+	move $t5, $a0
+	li $a0, 1
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
-	add $a1, $a1, $a0
-	lw $a0, 0($a1)
-	li $v0, 1
-	syscall
+	li $t2, 12
+	sub $t1 $t2 $a0
+	add $sp,$sp,$t1
+	sw $t5, 0($sp)
+	sub $sp,$sp,$t1
+	li $t1, 12
+	add $sp,$sp,$t1
+	move $a0, $sp
+	sub $sp,$sp,$t1
+	addi $sp,$sp,-0
+	sw $a0,0($sp)
+	addi $sp,$sp, 0
+	li $a0, 1
+	addi $sp,$sp,-4
+	sw $a0,0($sp)
+	addi $sp,$sp, 4
+	addi $sp,$sp,-8
+	jal sumar
+	addi $sp,$sp,8
+	sw $a0, 16($sp)
 	li $v0, 10
 	syscall
 	
