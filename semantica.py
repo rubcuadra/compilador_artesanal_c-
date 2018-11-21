@@ -156,9 +156,25 @@ def validateCompoundStatements(statementBlock, _scope):
             else:
                 error(statement,"Wrong assignment")
         elif statement.type == "CALL":      #Check called func exists and it is void
+            params = statement[1:]
             s = getType(statement[0],_scope)
-            if not s:     error(statement,f"Calling function without definition '{statement[0].value}'")
-            if s!='void': error(statement,f"Called NON void function without assignment")
+            if not s:     
+                error(statement,f"Calling function without definition '{statement[0].value}'")
+            if s!='void': 
+                error(statement,f"Called NON void function without assignment")
+            symb = _scope.getSymbol(statement[0].value)
+            if statement[0].value == 'output': #Param is an int 
+                if len(params)!=1: raise Exception("output only recieves 1 int param")
+                else:
+                    s = getType(params[0],_scope)
+                    if s != "int": raise Exception("calling input with a non int value")
+            else:
+                if len(symb[2:]) != len(params): raise Exception(f"Calling function with different amount of params: {statement[0].value}")
+                for passed,param in zip(symb[2:],params):
+                    if passed[0].type == 'int' and param.type == 'INTEGER':
+                        continue
+                    raise Exception("Calling function with different type of params")
+
         elif statement.type == "return_stmt":  #Check returns exist
             s = _scope.getSymbol(_scope.tag) #SI es None es que we fucked up algo
             if s[0] == 'void' and len(statement.children)>1: 
@@ -219,6 +235,7 @@ def getType(parseNode,scopeNode):
             c = getType(parseNode.children[0],scopeNode)
             if len(parseNode.children)>1: 
                 f = scopeNode.getSymbol(parseNode.children[0].value)
+                if len(f[2:])!=len(parseNode.children[1:]): raise Exception(f"Calling function with different amount of params: {parseNode.children[0].value}")
                 for i,passedParam in enumerate(parseNode.children[1:], start=2):
                     if getType(f[i],scopeNode) != getType(passedParam,scopeNode): 
                         error(parseNode,f"Wrong param type: function {parseNode.children[0].value} param #{start-1}")

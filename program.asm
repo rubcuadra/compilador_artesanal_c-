@@ -51,16 +51,18 @@ main:
 	syscall
 #CALLING sumar
 	li $a0, 3
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 9
+	lw $t1 4($sp)
+	add $a0 $t1 $a0
+	addi $sp,$sp,4
 	addi $sp,$sp,-0
 	sw $a0,0($sp)
 	addi $sp,$sp, 0
-	li $a0, 9
 	addi $sp,$sp,-4
-	sw $a0,0($sp)
-	addi $sp,$sp, 4
-	addi $sp,$sp,-8
 	jal sumar
-	addi $sp,$sp,8
+	addi $sp,$sp,4
 #FINISHED CALLING sumar
 	sw $a0, 4($sp)
 	lw $a0, 4($sp)
