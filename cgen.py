@@ -86,14 +86,47 @@ def generateCode(node, tables, generator):
         else:    
             raise Exception(f"unkown declaration {node.type} {node.value}")
     elif node.type == 'if':
-        condition = node[0] #type == relop
-        # condition[0] condition.value(EQ, LT, GT ... ) condition[1]
-        condTrue  = node[1]
+        condition = node[0] 
+        #LEFT
+        generateCode(condition[0], tables, generator)
+        generator.writeLine("sw $a0 0($sp)")#Save record
+        generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
+        tables.setSP( tables.sp + WORD_SIZE )
+        #RIGHT
+        generateCode(condition[1], tables, generator) #Right in a0
+        generator.writeLine("lw $t1 4($sp)")          #Left  in t1
+        tables.setSP( tables.sp - WORD_SIZE ) 
+        generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
+        
+        trueLabel,falseLabel,contLabel = tables.getIfLabels()
+        #t1 RELOP a0
+        if condition.value == 'LT':
+            generator.writeLine(f"blt $a0, $t1, {trueLabel}") 
+        elif condition.value == 'LE':
+            generator.writeLine(f"ble $a0, $t1, {trueLabel}") 
+        elif condition.value == 'GT':
+            generator.writeLine(f"bgt $a0, $t1, {trueLabel}") 
+        elif condition.value == 'GE':
+            generator.writeLine(f"bge $a0, $t1, {trueLabel}") 
+        elif condition.value == 'EQ':
+            generator.writeLine(f"beq $a0, $t1, {trueLabel}") 
+        elif condition.value == 'NE':
+            generator.writeLine(f"bne $a0, $t1, {trueLabel}") 
+        else:
+            raise Exception("Unkown operator ",condition.value)
+        generator.writeLine(f"j {falseLabel}") #If we got here is that we didnt jump before
+        generator.writeLine(f"{trueLabel}:", tab=False) 
+        for statement in node[1]: 
+            generateCode(statement,tables,generator)
+        generator.writeLine(f"j {contLabel}") 
+        generator.writeLine(f"{falseLabel}:", tab=False) 
         if len(node.children) == 3: #else part
-            condFalse = node[2] 
-        '''
-            TODO: IF structure
-        '''
+            for statement in node[2]: 
+                generateCode(statement,tables,generator)
+
+        generator.writeLine(f"{contLabel}:", tab=False) 
+        
+        
     elif node.type == 'while':
         condition = node[0]
         codeBlock = node[1]
@@ -112,31 +145,23 @@ def generateCode(node, tables, generator):
             generator.writeLine("li $v0, 1")     #Will Print
             generator.writeLine("syscall")       #Print the value of $a0
         else:
-            generator.comment(f"CALLING {defName}")
             defScope = tables.getGlobalScope().getChildrenScope(defName)
             s = tables.getSymbol(defName) #Knowing params of the function
-            #Save
             #Prepare params that will be sent
-            
             current_offset = 0
             for passedVar,paramInDef in zip(callParams,s[2:]) : #Define params for the call 
                 #Load to a0 the value that will be sent
                 generateCode(passedVar, tables, generator)
-                
                 #Save that for passing as params
                 generator.writeLine(f'addi $sp,$sp,-{current_offset}')#Move Flag to nextFree
                 generator.writeLine('sw $a0,0($sp)')                  #Save that Param
                 generator.writeLine(f'addi $sp,$sp, {current_offset}')   #Return Flag
                 current_offset += WORD_SIZE
-            
             generator.writeLine(f'addi $sp,$sp,-{current_offset}') #Move Flag to nextFree
-
             #Call the function
             generator.writeLine(f'jal {defName}')  # Save current PC in $ra, and jump to function
-            
             #IF def returned something it will be in a0
             generator.writeLine(f'addi $sp,$sp,{current_offset}') #Return to the position before setting params
-            generator.comment(f"FINISHED CALLING {defName}")
     elif node.type == "return_stmt":
         expr = node[1] #Check if it is a SEMI or something else (SEMI->void)
         generateCode(expr,tables,generator) #Put the return value in a0
@@ -150,9 +175,7 @@ def generateCode(node, tables, generator):
     elif node.type == 'EQUALS':
         left     = node[0]
         right    = node[1]
-        
         generateCode(right,tables,generator) #Puts right result to a0
-
         if left.type == "ARRAY_POS":
             arrName = left[0].value
             ix      = left[2].value

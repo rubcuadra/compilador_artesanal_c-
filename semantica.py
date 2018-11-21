@@ -19,6 +19,7 @@ class ScopeTree():
         self.tag      = tag
         self.children = []
         self.sp       = 0
+        self.ifLabels = 0
         if parent == None: self.depth = 0
         else:              self.depth = None
     
@@ -27,6 +28,11 @@ class ScopeTree():
         for ch in self.children:
             if ch.getChildrenScope(tag)!=None: 
                 return ch
+
+    def getIfLabels(self): #Globals
+        if self.parent: return self.parent.getIfLabels()
+        self.ifLabels += 1
+        return (f'iftrue{self.ifLabels}',f'iffalse{self.ifLabels}',f'ifcontinue{self.ifLabels}')
 
     #Reset pointer to params start (sp = lastParamoffset)
     def setSP(self, newSP):
