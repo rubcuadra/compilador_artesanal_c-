@@ -20,6 +20,7 @@ class ScopeTree():
         self.children = []
         self.sp       = 0
         self.ifLabels = 0
+        self.whLabels = 0
         if parent == None: self.depth = 0
         else:              self.depth = None
     
@@ -28,6 +29,11 @@ class ScopeTree():
         for ch in self.children:
             if ch.getChildrenScope(tag)!=None: 
                 return ch
+
+    def getWhileLabels(self):
+        if self.parent: return self.parent.getWhileLabels()
+        self.whLabels += 1
+        return (f'stwhile{self.whLabels}',f'ifwhile{self.whLabels}',f'endwhile{self.whLabels}')
 
     def getIfLabels(self): #Globals
         if self.parent: return self.parent.getIfLabels()

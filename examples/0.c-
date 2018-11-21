@@ -6,15 +6,11 @@ int sumar( int a, int b)
 
 void main(void)
 {
-  int x;  int y; 
-  x = 2;
-  y = 1;
-
-  if( x >= 2){
-  	output(1);
+  int x; 
+  x = 1;
+  while(x<10){
+  	output(x);
+  	x = x + 1;
   }
-  else{
-  	output(0);
-  }
-  output(9);
+  output(0);
 }

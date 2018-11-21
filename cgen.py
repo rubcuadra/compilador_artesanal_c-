@@ -101,17 +101,17 @@ def generateCode(node, tables, generator):
         trueLabel,falseLabel,contLabel = tables.getIfLabels()
         #t1 RELOP a0
         if condition.value == 'LT':
-            generator.writeLine(f"blt $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"blt $t1, $a0, {trueLabel}") 
         elif condition.value == 'LE':
-            generator.writeLine(f"ble $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"ble $t1, $a0, {trueLabel}") 
         elif condition.value == 'GT':
-            generator.writeLine(f"bgt $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"bgt $t1, $a0, {trueLabel}") 
         elif condition.value == 'GE':
-            generator.writeLine(f"bge $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"bge $t1, $a0, {trueLabel}") 
         elif condition.value == 'EQ':
-            generator.writeLine(f"beq $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"beq $t1, $a0, {trueLabel}") 
         elif condition.value == 'NE':
-            generator.writeLine(f"bne $a0, $t1, {trueLabel}") 
+            generator.writeLine(f"bne $t1, $a0, {trueLabel}") 
         else:
             raise Exception("Unkown operator ",condition.value)
         generator.writeLine(f"j {falseLabel}") #If we got here is that we didnt jump before
@@ -126,13 +126,44 @@ def generateCode(node, tables, generator):
 
         generator.writeLine(f"{contLabel}:", tab=False) 
         
-        
     elif node.type == 'while':
         condition = node[0]
         codeBlock = node[1]
-        '''
-            TODO: WHILE structure
-        '''
+
+        startWhileLabel, whileLabel, endWhileLabel = tables.getWhileLabels()
+        generator.writeLine(f"{startWhileLabel}:", tab=False) 
+        #LEFT
+        generateCode(condition[0], tables, generator)
+        generator.writeLine("sw $a0 0($sp)")#Save record
+        generator.writeLine(f'addi $sp,$sp,-{WORD_SIZE}') #Move to next record
+        tables.setSP( tables.sp + WORD_SIZE )
+        #RIGHT
+        generateCode(condition[1], tables, generator) #Right in a0
+        generator.writeLine("lw $t1 4($sp)")          #Left  in t1
+        tables.setSP( tables.sp - WORD_SIZE ) 
+        generator.writeLine(f"addi $sp,$sp,{WORD_SIZE}") #Return pointer
+        #t1 RELOP a0
+        if condition.value == 'LT':
+            generator.writeLine(f"blt $t1, $a0, {whileLabel}") 
+        elif condition.value == 'LE':
+            generator.writeLine(f"ble $t1, $a0, {whileLabel}") 
+        elif condition.value == 'GT':
+            generator.writeLine(f"bgt $t1, $a0, {whileLabel}") 
+        elif condition.value == 'GE':
+            generator.writeLine(f"bge $t1, $a0, {whileLabel}") 
+        elif condition.value == 'EQ':
+            generator.writeLine(f"beq $t1, $a0, {whileLabel}") 
+        elif condition.value == 'NE':
+            generator.writeLine(f"bne $t1, $a0, {whileLabel}") 
+        else:
+            raise Exception("Unkown operator ",condition.value)
+        generator.writeLine(f"j {endWhileLabel}")           #No entrar al ciclo
+        generator.writeLine(f"{whileLabel}:", tab=False)    #Logica While
+        for statement in codeBlock:
+            generateCode(statement,tables,generator)
+        generator.writeLine(f"j {startWhileLabel}")         #Volver a la condicional
+        generator.writeLine(f"{endWhileLabel}:", tab=False) #Fuga
+
     elif node.type == 'CALL':
         defName    = node[0].value
         callParams = node[1:] #Can Be []

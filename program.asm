@@ -17,32 +17,32 @@ main:
 	li $s0 0
 	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $s0 0
-	sw $s0,0($sp)
-	addi $sp,$sp,-4
-	li $a0, 2
-	sw $a0, 8($sp)
 	li $a0, 1
 	sw $a0, 4($sp)
-	lw $a0, 8($sp)
+stwhile1:
+	lw $a0, 4($sp)
 	sw $a0 0($sp)
 	addi $sp,$sp,-4
-	li $a0, 2
+	li $a0, 10
 	lw $t1 4($sp)
 	addi $sp,$sp,4
-	bge $a0, $t1, iftrue1
-	j iffalse1
-iftrue1:
+	blt $t1, $a0, ifwhile1
+	j endwhile1
+ifwhile1:
+	lw $a0, 4($sp)
+	li $v0, 1
+	syscall
+	lw $a0, 4($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
 	li $a0, 1
-	li $v0, 1
-	syscall
-	j ifcontinue1
-iffalse1:
+	lw $t1 4($sp)
+	add $a0 $t1 $a0
+	addi $sp,$sp,4
+	sw $a0, 4($sp)
+	j stwhile1
+endwhile1:
 	li $a0, 0
-	li $v0, 1
-	syscall
-ifcontinue1:
-	li $a0, 9
 	li $v0, 1
 	syscall
 	li $v0, 10
