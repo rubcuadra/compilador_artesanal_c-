@@ -209,20 +209,26 @@ def generateCode(node, tables, generator):
         generateCode(right,tables,generator) #Puts right result to a0
         if left.type == "ARRAY_POS":
             arrName = left[0].value
-            
+            generator.writeLine("move $t3, $a0") #Move assignation result to t3
             if tables.isGlobal(arrName):
-                ix      = left[2].value
-                generator.writeLine(f"la $a1, {arrName}{ix}") #Get address 
-                generator.writeLine(f"sw $a0 0($a1)")      
+                generateCode(left[2],tables,generator)        #a0 will have the index
+                generator.writeLine(f"la $a1, {arrName}")     #get address of global var
+                generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
+                generator.writeLine(f"mult $a0, $t1")         #lo = ix * WORD_SIZE
+                generator.writeLine( "mflo $a0")              #a0 = lo
+                generator.writeLine( "add $a1, $a1, $a0")     #a1 = Address of array + a0
+                generator.writeLine(f"sw $t3, 0($a1)")        #save to $a0
             else:
                 generateCode(left[2],tables,generator)        #a0 will have the index
                 generator.writeLine(f"mult $a0, {WORD_SIZE}") #Result goes to HI and LO
                 generator.writeLine( "mflo $a0")              #Pop Lo
                 spOffset = tables.getOffset(arrName)
                 generator.writeLine(f"sub $a0 {spOffset} $a0")#Adjust index
-                # ix      = left[2].value
-                # spOffset = tables.getOffset(arrName)
-                # generator.writeLine(f"sw $a0, {spOffset-ix*WORD_SIZE}($sp)")
+                '''
+                    TODO
+                '''
+                generator.writeLine(f"sw $t3, $a0($sp)")      #save to $a0
+
         elif left.type == 'ID':
             assigned = left.value
             #Save whatever is in $a0 in the variable
@@ -274,9 +280,17 @@ def generateCode(node, tables, generator):
     elif node.type == "ARRAY_POS": #Access to array by index
         arrName = node[0].value
         if tables.isGlobal(arrName): 
-            ix      = node[2].value #TODO access to global arrays via expressions, only working if accesed by number
-            generator.writeLine(f"lw $a0, {arrName}{ix}")
+            generateCode(node[2],tables,generator)        #a0 will have the index
+            generator.writeLine(f"la $a1, {arrName}")     #get address of global var
+            generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
+            generator.writeLine(f"mult $a0, $t1")         #lo = ix * WORD_SIZE
+            generator.writeLine( "mflo $a0")              #a0 = lo
+            generator.writeLine( "add $a1, $a1, $a0")     #a1 = Address of array + a0
+            generator.writeLine(f"lw $a0, 0($a1)")        #load to $a0
         else:
+            '''
+                TODO
+            '''
             generateCode(node[2],tables,generator)        #a0 will have the index
             generator.writeLine(f"mult $a0, {WORD_SIZE}") #Result goes to HI and LO
             generator.writeLine( "mflo $a0")              #Pop Lo
@@ -314,8 +328,7 @@ def generateCode(node, tables, generator):
                     generator.writeLine(f"{varName}:\t.word 0", tab=False) #Init in 0
                 elif declaration.value == 'ARRAY':
                     arrSize = declaration[3].value
-                    for i in range(arrSize):
-                        generator.writeLine(f"{varName}{i}:\t.word 0", tab=False) #Init in 0
+                    generator.writeLine(f"{varName}:\t.word {'0, '*(arrSize-1)}0", tab=False) #Init in 0
                 else:
                     raise Exception("Unkown global declaration")
     else:    
@@ -331,7 +344,7 @@ if __name__ == '__main__':
     from globalTypes import *
     from parser import *
     
-    f = open('examples/2.c-', 'r')
+    f = open('examples/0.c-', 'r')
     programa = f.read()
     progLong = len(programa)
     programa = programa + TokenType.ENDFILE.value
