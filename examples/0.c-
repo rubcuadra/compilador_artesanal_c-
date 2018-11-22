@@ -1,27 +1,13 @@
-int fibonacci[10];
-
-int next(int x){
-	return x+1;
+/* Un programa para realizar el algoritmo de 
+Euclides para calcular mcd */
+int gcd(int u, int v){
+    if (v == 0) {return u;}
+    else {return gcd(v ,u-u/v*v);}
+    /* u-u/v*v == u mod v */
 }
 
 void main(void)
-{
-	int l; int r; int i;
-	
-	/*Calculate it*/
-	fibonacci[0] = 0; fibonacci[1] = 1;
-	i = 2;
-	while(i < 10){
-		r = fibonacci[i-2];
-		l = fibonacci[i-1];
-		fibonacci[i] =  l+r;
-		i = next(i);
-	}	
-
-	/*Print it*/
-	i = 0;
-	while(i < 10){ 
-		output(fibonacci[i]); 
-		i = next(i);
-	}
+{   int x; int y;
+    x = input(); y = input();
+    output( gcd(x,y) );
 }
