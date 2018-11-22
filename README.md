@@ -1,5 +1,5 @@
 <object data="https://github.com/rubcuadra/compilador_artesanal_c-/blob/master/Docs/finalCompiladores.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="http://yoursite.com/the.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
+    <embed src="https://github.com/rubcuadra/compilador_artesanal_c-/blob/master/Docs/finalCompiladores.pdf">
+        <p><a href="https://github.com/rubcuadra/compilador_artesanal_c-/blob/master/Docs/finalCompiladores.pdf">Go To PDF</a></p>
     </embed>
 </object>
