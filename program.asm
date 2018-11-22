@@ -43,31 +43,31 @@ ifwhile1:
 	lw $a0, 12($sp)
 	sw $a0 0($sp)
 	addi $sp,$sp,-4
-	li $a0, 1
-	lw $t1 4($sp)
-	sub $a0 $t1 $a0
-	addi $sp,$sp,4
-	la $a1, fibonacci
-	li $t1, 4
-	mult $a0, $t1
-	mflo $a0
-	add $a1, $a1, $a0
-	lw $a0, 0($a1)
-	sw $a0, 8($sp)
-	lw $a0, 12($sp)
-	sw $a0 0($sp)
-	addi $sp,$sp,-4
 	li $a0, 2
 	lw $t1 4($sp)
 	sub $a0 $t1 $a0
 	addi $sp,$sp,4
-	la $a1, fibonacci
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
+	la $a1, fibonacci
 	add $a1, $a1, $a0
 	lw $a0, 0($a1)
 	sw $a0, 4($sp)
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 1
+	lw $t1 4($sp)
+	sub $a0 $t1 $a0
+	addi $sp,$sp,4
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	la $a1, fibonacci
+	add $a1, $a1, $a0
+	lw $a0, 0($a1)
+	sw $a0, 8($sp)
 	lw $a0, 8($sp)
 	sw $a0 0($sp)
 	addi $sp,$sp,-4
@@ -84,23 +84,19 @@ ifwhile1:
 	add $a1, $a1, $a0
 	sw $t5, 0($a1)
 	lw $a0, 12($sp)
-	sw $a0 0($sp)
-	addi $sp,$sp,-4
-	li $a0, 2
-	lw $t1 4($sp)
-	sub $a0 $t1 $a0
-	addi $sp,$sp,4
-	la $a1, fibonacci
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
+	la $a1, fibonacci
 	add $a1, $a1, $a0
 	lw $a0, 0($a1)
 	li $v0, 1
 	syscall
+	move $t8, $a0
 	addi $a0, $0, 0xA
 	addi $v0, $0, 0xB
 	syscall
+	move $a0, $t8
 	lw $a0, 12($sp)
 	sw $a0 0($sp)
 	addi $sp,$sp,-4

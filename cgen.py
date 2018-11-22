@@ -38,9 +38,11 @@ def exit(generator):
 def printASM(generator):
     generator.writeLine("li $v0, 1")     #Will Print
     generator.writeLine("syscall")       #Print the value of $a0
+    generator.writeLine("move $t8, $a0")     #Save a0
     generator.writeLine("addi $a0, $0, 0xA") #ascii code for LF, if you have any trouble try 0xD for CR.
     generator.writeLine("addi $v0, $0, 0xB") #syscall 11 prints the lower 8 bits of $a0 as an ascii character.
     generator.writeLine("syscall")           #Print the value of $a0
+    generator.writeLine("move $a0, $t8")     #Return a0
     
 def generateCode(node, tables, generator):
     if node.type == 'declaration':
@@ -308,19 +310,17 @@ def generateCode(node, tables, generator):
     elif node.type == "ARRAY_POS": #Access to array by index
         arrName = node[0].value
         generateCode(node[2],tables,generator)        #a0 will have the index
+        #Index * WORD_SIZE
+        generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
+        generator.writeLine(f"mult $a0, $t1")         #lo = ix * WORD_SIZE
+        generator.writeLine( "mflo $a0")              #a0 = lo
         if tables.isGlobal(arrName): 
+            #Get Array location
             generator.writeLine(f"la $a1, {arrName}")     #get address of global var
-            generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
-            generator.writeLine(f"mult $a0, $t1")         #lo = ix * WORD_SIZE
-            generator.writeLine( "mflo $a0")              #a0 = lo
-            generator.writeLine( "add $a1, $a1, $a0")     #a1 = Address of array + a0
+            generator.writeLine(f"add $a1, $a1, $a0")     #a1 = Address of array + a0
             generator.writeLine(f"lw $a0, 0($a1)")        #load to $a0
         else:
-            generator.writeLine(f"li $t1, {WORD_SIZE}")   #Prepare for MULT
-            generator.writeLine(f"mult $a0, $t1")         #Result goes to HI and LO
-            generator.writeLine( "mflo $a0")              #Pop Lo, a0 will have the offset
             spOffset = tables.getOffset(arrName)
-
             if tables.tag != 'main': #Array inside a function,check if it is a param
                 for param in tables.getSymbol(tables.tag)[2:]:
                     if param[1].value == arrName: #It is an array sent as param
