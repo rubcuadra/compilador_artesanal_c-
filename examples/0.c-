@@ -1,16 +1,27 @@
 int fibonacci[10];
 
+int next(int x){
+	return x+1;
+}
+
 void main(void)
 {
-	int i; int l; int r;
-
+	int l; int r; int i;
+	
+	/*Calculate it*/
 	fibonacci[0] = 0; fibonacci[1] = 1;
 	i = 2;
 	while(i < 10){
 		r = fibonacci[i-2];
 		l = fibonacci[i-1];
 		fibonacci[i] =  l+r;
-		output(fibonacci[i]);
-		i = i + 1;
+		i = next(i);
+	}	
+
+	/*Print it*/
+	i = 0;
+	while(i < 10){ 
+		output(fibonacci[i]); 
+		i = next(i);
 	}
 }
