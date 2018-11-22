@@ -1,17 +1,5 @@
 	.text
 	.globl main
-update:
-	lw $a0, 4($sp)
-	move $t5, $a0
-	lw $a0, 8($sp)
-	li $t1, 4
-	mult $a0, $t1
-	mflo $a0
-	lw $t1, 12($sp)
-	sub $t1 $t1 $a0
-	sw $t5, 0($t1)
-	addi $sp,$sp,0
-	jr $ra
 main:
 	li $s0 0
 	sw $s0,0($sp)
@@ -22,40 +10,109 @@ main:
 	li $s0 0
 	sw $s0,0($sp)
 	addi $sp,$sp,-4
-	li $s0 0
-	sw $s0,0($sp)
-	addi $sp,$sp,-4
-	li $t1, 12
-	add $sp,$sp,$t1
-	move $a0, $sp
-	sub $sp,$sp,$t1
-	addi $sp,$sp,-0
-	sw $a0,0($sp)
-	addi $sp,$sp, 0
-	li $a0, 2
-	addi $sp,$sp,-4
-	sw $a0,0($sp)
-	addi $sp,$sp, 4
-	li $a0, 10
-	addi $sp,$sp,-8
-	sw $a0,0($sp)
-	addi $sp,$sp, 8
-	addi $sp,$sp,-12
-	jal update
-	addi $sp,$sp,12
-	li $a0, 2
+	li $a0, 0
+	move $t5, $a0
+	li $a0, 0
 	li $t1, 4
 	mult $a0, $t1
 	mflo $a0
-	li $t2, 12
-	sub $t1 $t2 $a0
-	add $sp,$sp,$t1
-	lw $a0, 0($sp)
-	sub $sp,$sp,$t1
+	la $a1, fibonacci
+	add $a1, $a1, $a0
+	sw $t5, 0($a1)
+	li $a0, 1
+	move $t5, $a0
+	li $a0, 1
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	la $a1, fibonacci
+	add $a1, $a1, $a0
+	sw $t5, 0($a1)
+	li $a0, 2
+	sw $a0, 12($sp)
+stwhile1:
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 10
+	lw $t1 4($sp)
+	addi $sp,$sp,4
+	blt $t1, $a0, ifwhile1
+	j endwhile1
+ifwhile1:
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 1
+	lw $t1 4($sp)
+	sub $a0 $t1 $a0
+	addi $sp,$sp,4
+	la $a1, fibonacci
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	add $a1, $a1, $a0
+	lw $a0, 0($a1)
+	sw $a0, 8($sp)
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 2
+	lw $t1 4($sp)
+	sub $a0 $t1 $a0
+	addi $sp,$sp,4
+	la $a1, fibonacci
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	add $a1, $a1, $a0
+	lw $a0, 0($a1)
+	sw $a0, 4($sp)
+	lw $a0, 8($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	lw $a0, 8($sp)
+	lw $t1 4($sp)
+	add $a0 $t1 $a0
+	addi $sp,$sp,4
+	move $t5, $a0
+	lw $a0, 12($sp)
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	la $a1, fibonacci
+	add $a1, $a1, $a0
+	sw $t5, 0($a1)
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 2
+	lw $t1 4($sp)
+	sub $a0 $t1 $a0
+	addi $sp,$sp,4
+	la $a1, fibonacci
+	li $t1, 4
+	mult $a0, $t1
+	mflo $a0
+	add $a1, $a1, $a0
+	lw $a0, 0($a1)
 	li $v0, 1
 	syscall
+	addi $a0, $0, 0xA
+	addi $v0, $0, 0xB
+	syscall
+	lw $a0, 12($sp)
+	sw $a0 0($sp)
+	addi $sp,$sp,-4
+	li $a0, 1
+	lw $t1 4($sp)
+	add $a0 $t1 $a0
+	addi $sp,$sp,4
+	sw $a0, 12($sp)
+	j stwhile1
+endwhile1:
 	li $v0, 10
 	syscall
 	
 	.data
-k:	.word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+fibonacci:	.word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0

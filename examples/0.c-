@@ -1,14 +1,17 @@
-int k[10];
-
-void update( int a[], int ix, int val )
-{   
-	a[ix] = val;
-}
+int fibonacci[10];
 
 void main(void)
 {
-	int x; 
-	int r[3];
-	update( r , 2, 10);
-	output( r[2] );
+	int i; int l; int r;
+
+	fibonacci[0] = 0; fibonacci[1] = 1;
+	i = 2;
+	while(i < 10){
+		l = fibonacci[i-1];
+		r = fibonacci[i-2];		
+		fibonacci[i] =  l+r;
+		output(fibonacci[i-2]);
+		i = i + 1;
+	}
+
 }

@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+#Ruben Cuadra A01019102
+from sys import argv
+from globalTypes import *
+from parser import *
+from semantica import *
+from cgen import codeGen
+
+def error(msg):
+	print(msg)
+	quit()
+
+def showUsage():
+	print("Wrong usage:")
+	print('\t./c- {path/to/script.c-} -o {path/to/out.asm}')
+	quit()
+
+if __name__ == '__main__':
+	ifile = ''
+	ofile = 'out.asm'
+	
+	l = len(argv)
+	if l < 2: showUsage()
+	else:
+		if l > 2:
+			if argv[2] == '-o': 
+				ofile = argv[3]
+			else: 				
+				showUsage()
+		if argv[1]!='-o': 
+			ifile = argv[1]
+		else: 			  
+			showUsage()
+	try:                      f = open(ifile, 'r')
+	except FileNotFoundError: error(f"File not found: {ifile}")
+	programa = f.read()
+	progLong = len(programa)
+	programa = programa + TokenType.ENDFILE.value
+	posicion = 0
+	
+	globales(programa, posicion, progLong)
+	AST = parser(False)
+	semantica(AST, False)
+	codeGen(AST, ofile)

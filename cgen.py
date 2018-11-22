@@ -38,7 +38,10 @@ def exit(generator):
 def printASM(generator):
     generator.writeLine("li $v0, 1")     #Will Print
     generator.writeLine("syscall")       #Print the value of $a0
-
+    generator.writeLine("addi $a0, $0, 0xA") #ascii code for LF, if you have any trouble try 0xD for CR.
+    generator.writeLine("addi $v0, $0, 0xB") #syscall 11 prints the lower 8 bits of $a0 as an ascii character.
+    generator.writeLine("syscall")           #Print the value of $a0
+    
 def generateCode(node, tables, generator):
     if node.type == 'declaration':
         if node.value == 'FUNCTION':      #Declare Params
@@ -178,8 +181,7 @@ def generateCode(node, tables, generator):
             generator.writeLine("move $a0, $v0") #Move it to a0
         elif defName == 'output':
             generateCode( callParams[0], tables, generator ) #Puts Result in $a0
-            generator.writeLine("li $v0, 1")     #Will Print
-            generator.writeLine("syscall")       #Print the value of $a0
+            printASM(generator)
         else:
             defScope = tables.getGlobalScope().getChildrenScope(defName)
             s = tables.getSymbol(defName) #Knowing params of the function
@@ -387,6 +389,6 @@ if __name__ == '__main__':
     posicion = 0
     
     globales(programa, posicion, progLong)
-    AST = parser(False)
+    AST = parser(True)
     
     codeGen(AST, 'program.asm')

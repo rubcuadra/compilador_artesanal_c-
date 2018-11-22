@@ -168,11 +168,11 @@ def p_statement(): #Can return None
                   | return_stmt
     """
     possibles = [
+        p_return_stmt,
         p_expression_stmt,
         p_selection_stmt,
         p_iteration_stmt,
-        p_compound_stmt,
-        p_return_stmt
+        p_compound_stmt
     ]
     for p in possibles:
         c = p()
@@ -263,14 +263,13 @@ def p_expression(node_type="expression",deb=False):
                 if match("EQUALS"):
                     return Node("EQUALS",[L,p_expression()])
                 else: 
-                    factor = L
-                    factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
-                    factor = p_conditionals(factor)
-                    return factor
-        if match("LPAREN"): #CALL function
+                    idNode = L
+
+        if match("LPAREN"): #CALL function, puede haber algo despues
             args = p_args()
             if match("RPAREN"):
-                return Node("CALL",[idNode]+args,token=token)
+                idNode = Node("CALL",[idNode]+args,token=token)
+
     factor = idNode if idNode else p_factor()
     factor = p_operations(factor) #Sacar multiplicaciones,divisiones,sumas,restas
     factor = p_conditionals(factor)
@@ -442,11 +441,11 @@ def parser(imprime=True):
     if imprime:  Node.printTree(result) #print(result)
     return result
     
-# if __name__ == '__main__':
-#     #Segundo Parcial
-#     f = open('examples/3.c-', 'r')
-#     programa = f.read()
-#     programa = programa + '$' #Cuando quede hecho todo ver como remover el $
-#     globales(programa)
-#     AST = parser(True)
-#     
+if __name__ == '__main__':
+    #Segundo Parcial
+    f = open('examples/0.c-', 'r')
+    programa = f.read()
+    programa = programa + '$' #Cuando quede hecho todo ver como remover el $
+    globales(programa)
+    AST = parser(True)
+    
